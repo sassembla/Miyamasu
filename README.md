@@ -1,7 +1,7 @@
 # Miyamasu
 TestRunner which can wait async method with  WaitUntil() method.
 
-## Requirement
+## Requirement of Tests
 		
 1. Miyamasu requires extends "MiyamasuTestRunner" class for Target class. 
 2. Miyamasu requires "[MTest]" attribute for running.
