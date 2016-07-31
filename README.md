@@ -1,5 +1,5 @@
 # Miyamasu
-TestRunner which contains WaitUntil() method.
+TestRunner which can wait async method with  WaitUntil() method.
 
 ## Requirement
 		
@@ -49,4 +49,8 @@ these tests results will be apper in YOUR_UNITY_PROJECT/miyamasu_test.log
 	}
 ```
 	
-full sample codes are [here]()
+full sample codes are [here](https://github.com/sassembla/Miyamasu/blob/master/Assets/MiyamasuTestRunner/Editor/SampleTests/SampleTestSuite.cs)
+
+
+## License
+MIT.
