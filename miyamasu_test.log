@@ -1,6 +1,0 @@
-log:tests started.
-test:Fail failed.
-timeout:SyncWait_Fail
-test:SyncWait_Fail failed.
-
-log:tests end. passed:2 failed:2
