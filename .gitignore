@@ -4,3 +4,17 @@ Library/*
 ProjectSettings/*
 
 Temp/*
+
+Assembly-CSharp-Editor.csproj
+
+Assembly-CSharp.csproj
+
+Assets/VSCode.meta
+
+Assets/VSCode/*
+
+obj/*
+
+Miyamasu.sln
+
+miyamasu_test.log
