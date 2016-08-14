@@ -30,10 +30,10 @@ public class Tests : MiyamasuTestRunner {
 		var b = 2;
 		Assert(a == b, "a is not b, a:" + a + " b:" + b);
 	}
-
+	
 	/**
 		async operation with another thread.
-		"WaitUntil(Func<bool> completed, )" can wait another thread's done.
+		"WaitUntil(Func<bool> isCompleted, int waitSeconds)" can wait another thread's done.
 	*/
 	[MTest] public void SampleSuccessAsync () {
         var done = false;
