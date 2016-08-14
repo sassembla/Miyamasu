@@ -18,31 +18,45 @@ namespace Miyamasu {
 	public class MiyamasuTestRunner {
 		public MiyamasuTestRunner () {}
 
-		private struct TypeAndMedhods {
+		private class TypeAndMedhods {
 			public Type type;
+
+			public bool hasTests = false;
+			
 			public MethodInfo[] asyncMethodInfos;
+			public MethodInfo setupMethodInfo = null;
+			public MethodInfo teardownMethodInfo = null;
 
 			public TypeAndMedhods (Type t) {
-				this.type = t;
-				this.asyncMethodInfos = t.GetMethods()
+				var testMethods = t.GetMethods()
 					.Where(methods => 0 < methods.GetCustomAttributes(typeof(MTestAttribute), false).Length)
 					.ToArray();
+
+				if (!testMethods.Any()) return; 
+				this.hasTests = true;
+
+				/*
+					hold type.
+				*/
+				this.type = t;
+
+				/*
+					collect tests.
+				*/
+				this.asyncMethodInfos = testMethods;
+				
+				/*
+					collect setup and teardown.
+				*/
+				this.setupMethodInfo = t.GetMethods().Where(methods => 0 < methods.GetCustomAttributes(typeof(MSetupAttribute), false).Length).FirstOrDefault();
+				this.teardownMethodInfo = t.GetMethods().Where(methods => 0 < methods.GetCustomAttributes(typeof(MTeardownAttribute), false).Length).FirstOrDefault();
 			}
-		}
-
-		private string dataPath;
-		private void Setup () {
-			TestLogger.Log("setup");
-		}
-
-		private void Teardown () {
-			TestLogger.Log("teardown");
 		}
 
 		public void RunTestsOnEditorMainThread () {
 			var typeAndMethodInfos = Assembly.GetExecutingAssembly().GetTypes()
 				.Select(t => new TypeAndMedhods(t))
-				.Where(tAndMInfo => 0 < tAndMInfo.asyncMethodInfos.Length)
+				.Where(tAndMInfo => tAndMInfo.hasTests)
 				.ToArray();
 
 			
@@ -63,24 +77,21 @@ namespace Miyamasu {
 					foreach (var typeAndMethodInfo in typeAndMethodInfos) {
 						
 						var instance = Activator.CreateInstance(typeAndMethodInfo.type);
+
+						  
 						foreach (var methodInfo in typeAndMethodInfo.asyncMethodInfos) {
+							if (typeAndMethodInfo.setupMethodInfo != null) typeAndMethodInfo.setupMethodInfo.Invoke(instance, null);
+
 							var methodName = methodInfo.Name;
-							Setup();
 							
 							try {
-								var succeeded = (bool)methodInfo.Invoke(instance, null);
-								if (succeeded) {
-									passed++;
-								} else {
-									failed++;
-									TestLogger.Log("test:" + methodName + " failed.", true);
-								}
+								methodInfo.Invoke(instance, null);
+								passed++;
 							} catch (Exception e) {
 								failed++;
 								TestLogger.Log("test:" + methodName + " FAILED by exception:" + e, true);
 							}
-
-							Teardown();
+							if (typeAndMethodInfo.teardownMethodInfo != null) typeAndMethodInfo.teardownMethodInfo.Invoke(instance, null);
 						}
 					}
 
@@ -98,33 +109,27 @@ namespace Miyamasu {
 		/**
 			can wait Async code execution until specified sec passed.
 		*/
-		public bool WaitUntil (Func<bool> isCompleted, int timeoutSec=1) {
+		public void WaitUntil (Func<bool> isCompleted, int timeoutSec=1) {
 			var methodName = new Diag.StackFrame(1).GetMethod().Name;
 
 			var resetEvent = new ManualResetEvent(false);
-			var succeeded = true;
 			var waitingThread = new Thread(
 				() => {
 					resetEvent.Reset();
 					var startTime = DateTime.Now;
 					
-					try {
-						while (!isCompleted()) {
-							var current = DateTime.Now;
-							var distanceSeconds = (current - startTime).Seconds;
-							
-							if (0 < timeoutSec && timeoutSec < distanceSeconds) {
-								TestLogger.Log("timeout:" + methodName);
-								succeeded = false;
-								break;
-							}
-							
-							System.Threading.Thread.Sleep(10);
+					while (!isCompleted()) {
+						var current = DateTime.Now;
+						var distanceSeconds = (current - startTime).Seconds;
+						
+						if (0 < timeoutSec && timeoutSec < distanceSeconds) {
+							TestLogger.Log("timeout:" + methodName);
+							throw new Exception("timeout:" + methodName);
 						}
-					} catch (Exception e) {
-						TestLogger.Log("methodName:" + methodName + " error:" + e.Message, true);
+						
+						System.Threading.Thread.Sleep(10);
 					}
-					
+
 					resetEvent.Set();
 				}
 			);
@@ -132,7 +137,6 @@ namespace Miyamasu {
 			waitingThread.Start();
 			
 			resetEvent.WaitOne();
-			return succeeded;
 		}
 
 		public void RunOnMainThread (Action invokee) {
@@ -140,7 +144,7 @@ namespace Miyamasu {
 			runner = () => {
 				// run only once.
 				EditorApplication.update -= runner;
-				invokee();
+				if (invokee != null) invokee();
 			};
 			
 			EditorApplication.update += runner;
@@ -202,9 +206,17 @@ namespace Miyamasu {
 	}
 
 	/**
-		attribute for TestRunner.
+		attributes for TestRunner.
 	*/
+	[AttributeUsage(AttributeTargets.Method)] public class MSetupAttribute : Attribute {
+		public MSetupAttribute() {}
+	}
+
 	[AttributeUsage(AttributeTargets.Method)] public class MTestAttribute : Attribute {
 		public MTestAttribute() {}
+	}
+
+	[AttributeUsage(AttributeTargets.Method)] public class MTeardownAttribute : Attribute {
+		public MTeardownAttribute() {}
 	}
 }

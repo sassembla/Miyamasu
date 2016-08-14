@@ -1,55 +1,49 @@
 # Miyamasu
-TestRunner which can wait async method with  WaitUntil() method.
+TestRunner which can wait async method / Unity's MainThread operation with "WaitUntil()" method.
 
 ## Requirement of Tests
 		
 1. Miyamasu requires extends "MiyamasuTestRunner" class for Target class. 
 2. Miyamasu requires "[MTest]" attribute for running.
 	
-## Where I love
+## Where I love "Miyamasu"
 
-### WaitUntil(string methodName, Action<bool> assertion, int waitDurationCount) method is good for me.
+### WaitUntil(Action<bool> assertion, int waitSeconds)
+This method can wait async ops / Unity's MainThread ops.
 
-this method can wait async operation on that execution line with time limit. 
+this method can wait async operation on that execution line with time limit.
+
+### RunOnMainThread(Action) 
+Can run action into Unity's MainThread(almost perfect pseudo.)
 
 ### report will appears in file.
-these tests results will be apper in YOUR_UNITY_PROJECT/miyamasu_test.log
+These tests results will be apper in YOUR_UNITY_PROJECT/miyamasu_test.log logFile.
 
 
 ## Sample code
 
 ```C#
-	[MTest] public bool SyncWait_Success () {
-		var done = false;
+	[MTest] public void SampleSuccessAsyncOnMainThread () {
+    	var dataPath = string.Empty;
 
-		var endPoint = new IPEndPoint(IPAddress.Parse("0.0.0.0"), 80);
-
-		var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-		var connectArgs = new SocketAsyncEventArgs();
-		connectArgs.AcceptSocket = socket;
-		connectArgs.RemoteEndPoint = endPoint;
-		connectArgs.Completed += new EventHandler<SocketAsyncEventArgs>(
-			(obj, args) => {
-				// failed or succeded, done will be true.
-				done = true;
-			}
-		);
-	
-		// next Async operation will be done really soon in async.
-		socket.ConnectAsync(connectArgs);
+		/*
+			sometimes we should test the method which can only run in Unity's MainThread.
+			this async operation will be running in Unity's Main Thread.
+		*/
+		Action onMainThread = () => {
+			dataPath = UnityEngine.Application.dataPath;// this code is only available Unity's MainThread.
+		};
 		
-		// wait while "done" flag become true on next line.
-		// 1 is waiting duration.
-		var wait = WaitUntil("SyncWait_Success", () => done, 1);
+		RunOnMainThread(onMainThread);
 
-		// wait will become false when timeout occured.
-		if (!wait) return false;
-
-		return true;
-	}
+        /*
+			wait until "dataPath" is not null or empty.
+        */ 
+        WaitUntil(() => !string.IsNullOrEmpty(dataPath), 1);
+    }
 ```
 	
-full sample codes are [here](https://github.com/sassembla/Miyamasu/blob/master/Assets/MiyamasuTestRunner/Editor/SampleTests/SampleTestSuite.cs)
+full sample codes are [here](https://github.com/sassembla/Miyamasu/blob/master/Assets/SampleTests/Editor/SampleTest.cs)
 
 
 ## License

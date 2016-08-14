@@ -2,36 +2,40 @@ using System;
 using System.Net;
 using System.Net.Sockets;
 using Miyamasu;
-using UnityEngine;
 
 /**
-	samples of tests.
+	samples of test.
 */
 public class Tests : MiyamasuTestRunner {
+	[MSetup] public void Setup () {
+		TestLogger.Log("setup");
+	}
+
+	[MTeardown] public void Teardown () {
+		TestLogger.Log("teardown");
+	}
 
 	/**
 		always a = b.
 		"Assert(bool assertion, string message)" method can raise error when assertion failed.
 	*/
-	[MTest] public bool Success () {
+	[MTest] public void SampleSuccess () {
 		var a = 1;
 		var b = 1;
 		Assert(a == b, "a is not b, a:" + a + " b:" + b);
-		return true;
 	}
 	
-	[MTest] public bool Fail () {
+	[MTest] public void SampleFail () {
 		var a = 1;
 		var b = 2;
 		Assert(a == b, "a is not b, a:" + a + " b:" + b);
-		return true;
 	}
 
 	/**
 		async operation with another thread.
 		"WaitUntil(Func<bool> completed, )" can wait another thread's done.
 	*/
-	[MTest] public bool SuccessAsync () {
+	[MTest] public void SampleSuccessAsync () {
         var done = false;
 
 		/*
@@ -61,18 +65,13 @@ public class Tests : MiyamasuTestRunner {
 
 			2nd parameter "1" means waiting 1 seconds.
         */ 
-        var wait = WaitUntil(
+        WaitUntil(
 			() => done, 
 			1
 		);
-
-        // wait will become false when timeout occured.
-        if (!wait) return false;
-
-        return true;
     }
 
-	[MTest] public bool SuccessMainThreadAsync () {
+	[MTest] public void SampleSuccessAsyncOnMainThread () {
     	var dataPath = string.Empty;
 
 		/*
@@ -88,14 +87,6 @@ public class Tests : MiyamasuTestRunner {
         /*
 			wait until "dataPath" is not null or empty.
         */ 
-        var wait = WaitUntil(
-			() => !string.IsNullOrEmpty(dataPath), 
-			1
-		);
-
-        // wait will become false when timeout occured.
-        if (!wait) return false;
-
-        return true;
+        WaitUntil(() => !string.IsNullOrEmpty(dataPath), 1);
     }
 }
