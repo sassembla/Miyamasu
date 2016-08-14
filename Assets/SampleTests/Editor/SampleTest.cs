@@ -72,7 +72,7 @@ public class Tests : MiyamasuTestRunner {
     }
 
 	[MTest] public void SampleSuccessAsyncOnMainThread () {
-    	var dataPath = string.Empty;
+		var dataPath = string.Empty;
 
 		/*
 			sometimes we should test the method which can only run in Unity's MainThread.
@@ -81,12 +81,12 @@ public class Tests : MiyamasuTestRunner {
 		Action onMainThread = () => {
 			dataPath = UnityEngine.Application.dataPath;// this code is only available Unity's MainThread.
 		};
-		
+
 		RunOnMainThread(onMainThread);
 
-        /*
+		/*
 			wait until "dataPath" is not null or empty.
-        */ 
-        WaitUntil(() => !string.IsNullOrEmpty(dataPath), 1);
-    }
+		*/ 
+		WaitUntil(() => !string.IsNullOrEmpty(dataPath), 1);
+	}
 }
