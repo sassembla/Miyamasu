@@ -1,12 +1,18 @@
 # Miyamasu
-TestRunner which can wait async method / Unity's MainThread operation with "WaitUntil()" method.
+UnitTesting-kit and TestRunner on Unity.
 
-## Requirement of Tests
-		
-1. Miyamasu requires extends "MiyamasuTestRunner" class for Target class. 
-2. Miyamasu requires "[MTest]" attribute for running. additionary you can use [MSetup] and [MTeardown] attribute for setup/teardown.
+This TestRunner can wait async / Unity's MainThread operation on single context. with "WaitUntil()" method.
+
+v 1.0.0
+
+## Requirement of Tests on Miyamasu
+1. *.cs file which contains tests should be under "Editor" folder.
+2. Miyamasu requires extends "MiyamasuTestRunner" class for supplying Assert and WaitUntil method.
+3. Miyamasu requires "[MTest]" attribute for running method as Unit Test. additionary you can use [MSetup] and [MTeardown] attribute for setup/teardown.
 
 ```C#	
+// (this file is located at "Assets/SOMEWHERE/Editor/Test.cs")
+
 using Miyamasu;
 public class Tests : MiyamasuTestRunner {
 	[MSetup] public void Setup () {
@@ -30,22 +36,37 @@ public class Tests : MiyamasuTestRunner {
 	
 ## Installation
 Use "MiyamasuTestRunner.unitypackage".
-This contains sample tests. and it will start running automatically when compile is overed.
+This contains sample tests. and it will start running automatically when compile is done.
 
 
 ## Where I love "Miyamasu"
 
-### WaitUntil(Action<bool> assertion, int waitSeconds)
-This method can wait async ops / Unity's MainThread ops.
+### WaitUntil(Action<bool> isCompleted, int waitSeconds) method
+This method can wait async ops / Unity's MainThread ops on current context, on execution line with time limit.
 
-this method can wait async operation on that execution line with time limit.
+```C#
+// wait on next line. while isCompleted() return true or timelimit comes.
+WaitUntil(() => true, 1);
+// isCompleted returns true in 1 sec.
 
-### RunOnMainThread(Action) 
+// or, Timeout Exception raised.
+```
+
+### RunOnMainThread(Action) method
 Can run action into Unity's MainThread(almost perfect pseudo.)
 
 ### report goes to logfile.
 These tests results will be apper in YOUR_UNITY_PROJECT/miyamasu_test.log logFile.
 
+no need to see Unity's GUI.
+
+```
+(YOUR_UNITY_PROJECT/miyamasu_test.log)
+
+log:tests started.
+test:SampleFail ASSERT FAILED:a is not b, a:1 b:2
+log:tests end. passed:3 failed:1
+```
 
 ## Sample code
 
@@ -72,6 +93,9 @@ These tests results will be apper in YOUR_UNITY_PROJECT/miyamasu_test.log logFil
 	
 full sample codes are [here](https://github.com/sassembla/Miyamasu/blob/master/Assets/SampleTests/Editor/SampleTest.cs)
 
+
+## Manual running button and GUI
+missing part of Miyamasu. contribution welcome!
 
 ## License
 MIT.
