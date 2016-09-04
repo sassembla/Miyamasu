@@ -111,6 +111,7 @@ namespace Miyamasu {
 		*/
 		public void WaitUntil (Func<bool> isCompleted, int timeoutSec=1) {
 			var methodName = new Diag.StackFrame(1).GetMethod().Name;
+			var timeout = false;
 
 			var resetEvent = new ManualResetEvent(false);
 			var waitingThread = new Thread(
@@ -123,8 +124,8 @@ namespace Miyamasu {
 						var distanceSeconds = (current - startTime).Seconds;
 						
 						if (0 < timeoutSec && timeoutSec < distanceSeconds) {
-							TestLogger.Log("timeout:" + methodName);
-							throw new Exception("timeout:" + methodName);
+							timeout = true;
+							break;
 						}
 						
 						System.Threading.Thread.Sleep(10);
@@ -137,6 +138,11 @@ namespace Miyamasu {
 			waitingThread.Start();
 			
 			resetEvent.WaitOne();
+
+			if (timeout) {
+				TestLogger.Log("timeout:" + methodName, true);
+				throw new Exception("timeout:" + methodName);
+			}
 		}
 
 		public void RunOnMainThread (Action invokee) {
