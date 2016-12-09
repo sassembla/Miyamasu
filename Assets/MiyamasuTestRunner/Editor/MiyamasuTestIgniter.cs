@@ -20,5 +20,18 @@ namespace Miyamasu {
 			}
 			#endif
 		}
+
+		public static void CloudBuildTest () {
+			#if CLOUDBUILD
+			{
+				Debug.Log("in cloudbuild.");
+			}
+			#else
+			{
+				var testRunner = new MiyamasuTestRunner();
+				testRunner.RunTestsOnEditorMainThread();
+			}
+			#endif
+		}
 	}
 }
