@@ -6,7 +6,7 @@ using Miyamasu;
 /**
 	samples of test.
 */
-public class Tests : MiyamasuTestRunner {
+public class SampleTest : MiyamasuTestRunner {
 	[MSetup] public void Setup () {
 		TestLogger.Log("setup");
 	}

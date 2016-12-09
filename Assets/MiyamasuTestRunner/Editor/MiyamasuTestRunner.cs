@@ -70,18 +70,18 @@ namespace Miyamasu {
 
 			TestLogger.Log("tests started.", true);
 			
+			var totalMethodCount = typeAndMethodInfos.Count();
+
 			// generate waiting thread for waiting asynchronous(=running on MainThread or other thread) ops on Not-MainThread.
 			Thread thread = null;
 			thread = new Thread(
 				() => {
+					var count = 0;
 					foreach (var typeAndMethodInfo in typeAndMethodInfos) {
-						
 						var instance = Activator.CreateInstance(typeAndMethodInfo.type);
 
-						  
 						foreach (var methodInfo in typeAndMethodInfo.asyncMethodInfos) {
 							if (typeAndMethodInfo.setupMethodInfo != null) typeAndMethodInfo.setupMethodInfo.Invoke(instance, null);
-
 							var methodName = methodInfo.Name;
 							
 							try {
@@ -89,10 +89,25 @@ namespace Miyamasu {
 								passed++;
 							} catch (Exception e) {
 								failed++;
-								TestLogger.Log("test:" + methodName + " FAILED by exception:" + e, true);
+								
+								var location = string.Empty;
+								var errorStackLines = e.ToString().Split('\n');
+								
+								for (var i = 0; i < errorStackLines.Length; i++) {
+									var line = errorStackLines[i];
+									// TestLogger.Log("line:" + line);
+									if (line.StartsWith("  at Miyamasu.MiyamasuTestRunner.Assert")) {
+										location = errorStackLines[i+1].Substring("  at ".Length);
+										break;
+									}  
+								}
+
+								TestLogger.Log("test FAILED @ " + location + "by:" + e.InnerException.Message, true);
 							}
 							if (typeAndMethodInfo.teardownMethodInfo != null) typeAndMethodInfo.teardownMethodInfo.Invoke(instance, null);
 						}
+						count++;
+						TestLogger.Log("tests of class:" + typeAndMethodInfo.type + " done. classes:" + count + " of " + totalMethodCount, true);
 					}
 
 					TestLogger.Log("tests end. passed:" + passed + " failed:" + failed, true);
@@ -111,7 +126,6 @@ namespace Miyamasu {
 		*/
 		public void WaitUntil (Func<bool> isCompleted, int timeoutSec=1) {
 			var methodName = new Diag.StackFrame(1).GetMethod().Name;
-			var timeout = false;
 
 			var resetEvent = new ManualResetEvent(false);
 			var waitingThread = new Thread(
@@ -124,8 +138,7 @@ namespace Miyamasu {
 						var distanceSeconds = (current - startTime).Seconds;
 						
 						if (0 < timeoutSec && timeoutSec < distanceSeconds) {
-							timeout = true;
-							break;
+							throw new Exception("timeout:" + methodName);
 						}
 						
 						System.Threading.Thread.Sleep(10);
@@ -138,11 +151,6 @@ namespace Miyamasu {
 			waitingThread.Start();
 			
 			resetEvent.WaitOne();
-
-			if (timeout) {
-				TestLogger.Log("timeout:" + methodName, true);
-				throw new Exception("timeout:" + methodName);
-			}
 		}
 
 		public void RunOnMainThread (Action invokee) {
@@ -156,23 +164,25 @@ namespace Miyamasu {
 			EditorApplication.update += runner;
 		}
 		
+
 		public void Assert (bool condition, string message) {
-			var methodName = new Diag.StackFrame(1).GetMethod().Name;
 			if (!condition) {
-				var situation = "test:" + methodName + " ASSERT FAILED:" + message;
-				TestLogger.Log(situation);
-				throw new Exception(situation);
+				throw new Exception("assert failed:" + message);
 			}
 		}
-		
-		public void Assert (object expected, object actual, string message) {
-			var methodName = new Diag.StackFrame(1).GetMethod().Name;
-			if (expected.ToString() != actual.ToString()) {
-				var situation = "test:" + methodName + " ASSERT FAILED:" + message + " expected:" + expected + " actual:" + actual;
-				TestLogger.Log(situation);
-				throw new Exception(situation);
-			} 
-		}
+
+		// public void Assert (object expected, object actual, string message) {
+		// 	if (expected.ToString() != actual.ToString()) {
+		// 		var method = new Diag.StackTrace().GetFrames();//StackFrame(1).GetMethod();
+		// 		// var methodName = method.Name;
+		// 		// var methodInfo = method.ToString();
+
+		// 		var location = "test:" + method + "\n";
+		// 		var situation = location + "	" + " ASSERT FAILED:" + message + " expected:" + expected + " actual:" + actual;
+		// 		TestLogger.Log(situation);
+		// 		throw new Exception(situation);
+		// 	} 
+		// }
 
 		public const string MIYAMASU_TESTLOG_FILE_NAME = "miyamasu_test.log";
 

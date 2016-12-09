@@ -1,4 +1,3 @@
-using System.IO;
 using UnityEditor;
 using UnityEngine;
 
@@ -10,9 +9,16 @@ namespace Miyamasu {
 	[InitializeOnLoad] public class MiyamasuTestIgniter {
 		static MiyamasuTestIgniter () {
 
-			Debug.LogWarning("miyamasu start running. test results will be appear in " + Path.Combine(Directory.GetParent(Application.dataPath).FullName, MiyamasuTestRunner.MIYAMASU_TESTLOG_FILE_NAME));
-			var testRunner = new MiyamasuTestRunner();
-			testRunner.RunTestsOnEditorMainThread();
+			#if CLOUDBUILD
+			{
+				Debug.Log("in cloudbuild.");
+			}
+			#else
+			{
+				var testRunner = new MiyamasuTestRunner();
+				testRunner.RunTestsOnEditorMainThread();
+			}
+			#endif
 		}
 	}
 }

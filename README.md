@@ -3,7 +3,7 @@ UnitTesting-kit and TestRunner on Unity.
 
 This TestRunner can wait async / Unity's MainThread operation on single context. with "WaitUntil()" method.
 
-v 1.0.0
+v 1.0.1
 
 ## Requirement of Tests on Miyamasu
 1. *.cs file which contains tests should be under "Editor" folder.
@@ -98,4 +98,5 @@ full sample codes are [here](https://github.com/sassembla/Miyamasu/blob/master/A
 missing part of Miyamasu. contribution welcome!
 
 ## License
-MIT.
+see below.  
+[LICENSE](./LICENSE)
