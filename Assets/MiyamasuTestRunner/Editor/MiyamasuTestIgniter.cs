@@ -8,20 +8,13 @@ namespace Miyamasu {
 	*/
 	[InitializeOnLoad] public class MiyamasuTestIgniter {
 		static MiyamasuTestIgniter () {
-
-			#if CLOUDBUILD
-			{
-				Debug.Log("in cloudbuild.");
-			}
-			#else
-			{
-				var testRunner = new MiyamasuTestRunner();
-				testRunner.RunTestsOnEditorMainThread();
-			}
-			#endif
+			Debug.Log("executing.");
+			var testRunner = new MiyamasuTestRunner();
+			testRunner.RunTestsOnEditorMainThread();
 		}
 
 		public static void CloudBuildTest () {
+			Debug.Log("executing.");
 			#if CLOUDBUILD
 			{
 				Debug.Log("in cloudbuild.");
