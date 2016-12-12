@@ -112,6 +112,9 @@ namespace Miyamasu {
 
 					TestLogger.Log("tests end. passed:" + passed + " failed:" + failed, true);
 					thread.Abort();
+
+					// ここでMainThreadで実行できる関数でEditorApplication.Exit(0);を実行すると良い気がする。そもそもここまでCloudBuild上で待ってくれてるのだろうか。
+					TestLogger.LogEnd();
 				}
 			);
 			try {
@@ -171,28 +174,17 @@ namespace Miyamasu {
 			}
 		}
 
-		// public void Assert (object expected, object actual, string message) {
-		// 	if (expected.ToString() != actual.ToString()) {
-		// 		var method = new Diag.StackTrace().GetFrames();//StackFrame(1).GetMethod();
-		// 		// var methodName = method.Name;
-		// 		// var methodInfo = method.ToString();
-
-		// 		var location = "test:" + method + "\n";
-		// 		var situation = location + "	" + " ASSERT FAILED:" + message + " expected:" + expected + " actual:" + actual;
-		// 		TestLogger.Log(situation);
-		// 		throw new Exception(situation);
-		// 	} 
-		// }
-
 		public const string MIYAMASU_TESTLOG_FILE_NAME = "miyamasu_test.log";
 
 		public static class TestLogger {
+			public static bool outputLog = true;
 			private static object lockObject = new object();
 
 			private static string pathOfLogFile;
 			private static StringBuilder _logs = new StringBuilder();
 			
 			public static void Log (string message, bool export=false) {
+				if (outputLog) UnityEngine.Debug.Log("log:" + message);
 				lock (lockObject) {
 					if (!export) {
 						_logs.AppendLine(message);
@@ -214,6 +206,25 @@ namespace Miyamasu {
 								_logs = new StringBuilder();
 							}
 							sr.WriteLine("log:" + message);
+						}
+					}
+				}
+			}
+
+			public static void LogEnd () {
+				lock (lockObject) {
+					// file write
+					using (var fs = new FileStream(
+						pathOfLogFile,
+						FileMode.Append,
+						FileAccess.Write,
+						FileShare.ReadWrite)
+					) {
+						using (var sr = new StreamWriter(fs)) {
+							if (0 < _logs.Length) {
+								sr.WriteLine(_logs.ToString());
+								_logs = new StringBuilder();
+							}
 						}
 					}
 				}

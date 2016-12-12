@@ -8,23 +8,33 @@ namespace Miyamasu {
 	*/
 	[InitializeOnLoad] public class MiyamasuTestIgniter {
 		static MiyamasuTestIgniter () {
-			Debug.Log("executing.");
+			/*
+				ローカルでのビルド時には実行、
+			*/
+			#if CLOUDBUILD
+			{
+				// do nothing.
+			}
+			#else
+			{
+				RunTests();
+			}
+			#endif
+		}
+
+		/**
+			テスト実行
+		*/
+		public static void RunTests () {
 			var testRunner = new MiyamasuTestRunner();
 			testRunner.RunTestsOnEditorMainThread();
 		}
 
+		/**
+			クラウドビルド時、コマンドラインから実行される関数
+		*/
 		public static void CloudBuildTest () {
-			Debug.Log("executing.");
-			#if CLOUDBUILD
-			{
-				Debug.Log("in cloudbuild.");
-			}
-			#else
-			{
-				var testRunner = new MiyamasuTestRunner();
-				testRunner.RunTestsOnEditorMainThread();
-			}
-			#endif
+			RunTests();
 		}
 	}
 }
