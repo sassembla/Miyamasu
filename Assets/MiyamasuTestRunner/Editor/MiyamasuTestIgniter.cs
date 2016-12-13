@@ -14,11 +14,9 @@ namespace Miyamasu {
 			#if CLOUDBUILD
 			{
 				// do nothing.
-				Debug.LogError("not start testing from build handle.");
 			}
 			#else
 			{
-				Debug.LogError("start testing from build handle.");
 				RunTests();
 			}
 			#endif
@@ -28,13 +26,12 @@ namespace Miyamasu {
 			テスト実行
 		*/
 		public static void RunTests () {
-			Debug.LogError("test running.");
 			var testRunner = new MiyamasuTestRunner();
 			testRunner.RunTestsOnEditorMainThread();
 		}
 
 		/**
-			クラウドビルド時、コマンドラインから実行される関数
+			クラウドビルド時、コマンドラインから実行される想定の関数
 		*/
 		public static void CloudBuildTest () {
 			Debug.LogError("start testing from method.");
