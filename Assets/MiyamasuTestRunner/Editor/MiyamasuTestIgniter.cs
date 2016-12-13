@@ -17,6 +17,7 @@ namespace Miyamasu {
 			}
 			#else
 			{
+				Debug.LogError("start testing from build handle.");
 				RunTests();
 			}
 			#endif
@@ -34,6 +35,7 @@ namespace Miyamasu {
 			クラウドビルド時、コマンドラインから実行される関数
 		*/
 		public static void CloudBuildTest () {
+			Debug.LogError("start testing from method.");
 			RunTests();
 		}
 	}
