@@ -95,11 +95,15 @@ namespace Miyamasu {
 								
 								for (var i = 0; i < errorStackLines.Length; i++) {
 									var line = errorStackLines[i];
-									// TestLogger.Log("line:" + line);
+									
 									if (line.StartsWith("  at Miyamasu.MiyamasuTestRunner.Assert")) {
 										location = errorStackLines[i+1].Substring("  at ".Length);
 										break;
-									}  
+									}
+									if (line.StartsWith("  at Miyamasu.MiyamasuTestRunner.WaitUntil")) {
+										location = errorStackLines[i+1].Substring("  at ".Length);
+										break;
+									}
 								}
 
 								TestLogger.Log("test FAILED @ " + location + "by:" + e.InnerException.Message, true);
@@ -127,21 +131,24 @@ namespace Miyamasu {
 		/**
 			can wait Async code execution until specified sec passed.
 		*/
-		public void WaitUntil (Func<bool> isCompleted, int timeoutSec=1) {
+		public void WaitUntil (Func<bool> isCompleted, int timeoutSec=1, string message="") {
 			var methodName = new Diag.StackFrame(1).GetMethod().Name;
+			Exception error = null;
 
 			var resetEvent = new ManualResetEvent(false);
 			var waitingThread = new Thread(
 				() => {
 					resetEvent.Reset();
-					var startTime = DateTime.Now;
+					var startTime = DateTime.Now.Second;
 					
 					while (!isCompleted()) {
-						var current = DateTime.Now;
-						var distanceSeconds = (current - startTime).Seconds;
-						
+						var current = DateTime.Now.Second;
+						var distanceSeconds = (current - startTime);
+
 						if (0 < timeoutSec && timeoutSec < distanceSeconds) {
-							throw new Exception("timeout:" + methodName);
+							if (!string.IsNullOrEmpty(message)) error = new Exception("timeout. reason:" + message);
+							else error = new Exception("timeout.");
+							break;
 						}
 						
 						System.Threading.Thread.Sleep(10);
@@ -154,6 +161,9 @@ namespace Miyamasu {
 			waitingThread.Start();
 			
 			resetEvent.WaitOne();
+			if (error != null) {
+				throw error;
+			}
 		}
 
 		public void RunOnMainThread (Action invokee) {

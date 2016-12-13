@@ -89,4 +89,17 @@ public class SampleTest : MiyamasuTestRunner {
 		*/ 
 		WaitUntil(() => !string.IsNullOrEmpty(dataPath), 1);
 	}
+	
+	[MTest] public void SampleFailByTimeout () {
+		var done = false;
+
+		/*
+			only timeout happens.
+        */ 
+        WaitUntil(
+			() => done, 
+			1,
+			"never done."
+		);
+	}
 }
