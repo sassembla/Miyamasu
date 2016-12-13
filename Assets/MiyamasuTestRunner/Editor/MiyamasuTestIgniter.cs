@@ -30,21 +30,13 @@ namespace Miyamasu {
 			var testRunner = new MiyamasuTestRunner();
 			testRunner.RunTestsOnEditorMainThread();
 		}
-
-		/**
-			クラウドビルド時、コマンドラインから実行される想定の関数
-		*/
-		public static void CloudBuildTest () {
-			Debug.LogError("start testing from method.");
-			RunTests();
-		}
 	}
 
 
 
-	public class Something {
-		[Test] public static void Run () {
-			Debug.LogError("run!");
+	public class CloudBuildTestEntryPoint {
+		[Test] public static void Test () {
+			MiyamasuTestIgniter.RunTests();
 		}
 	}
 }

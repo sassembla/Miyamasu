@@ -5,6 +5,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using Diag = System.Diagnostics;
+using UnityEngine;
 using UnityEditor;
 
 /**
@@ -54,6 +55,7 @@ namespace Miyamasu {
 		}
 
 		public void RunTestsOnEditorMainThread () {
+			Debug.Log("RunTestsOnEditorMainThread");
 			var typeAndMethodInfos = Assembly.GetExecutingAssembly().GetTypes()
 				.Select(t => new TypeAndMedhods(t))
 				.Where(tAndMInfo => tAndMInfo.hasTests)
@@ -119,6 +121,8 @@ namespace Miyamasu {
 
 					// ここでMainThreadで実行できる関数でEditorApplication.Exit(0);を実行すると良い気がする。そもそもここまでCloudBuild上で待ってくれてるのだろうか。
 					TestLogger.LogEnd();
+
+					Debug.Log("allover, RunTestsOnEditorMainThread");
 				}
 			);
 			try {
@@ -126,6 +130,9 @@ namespace Miyamasu {
 			} catch (Exception e) {
 				TestLogger.Log("Miyamasu TestRunner error:" + e);
 			}
+
+			// この関数自体をcoroutineに落とせれば、メインスレッド停止しないでものらりくらりできそうな気がする。
+			Debug.Log("done, RunTestsOnEditorMainThread");
 		}
 		
 		/**
