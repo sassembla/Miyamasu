@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Reflection;
 using System.Linq;
 using System.IO;
@@ -54,7 +55,7 @@ namespace Miyamasu {
 			}
 		}
 
-		public void RunTestsOnEditorMainThread () {
+		public IEnumerator RunTestsOnEditorMainThread (MiyamasuTestIgniter.CoroutineHolder runner) {
 			Debug.Log("RunTestsOnEditorMainThread");
 			var typeAndMethodInfos = Assembly.GetExecutingAssembly().GetTypes()
 				.Select(t => new TypeAndMedhods(t))
@@ -64,7 +65,7 @@ namespace Miyamasu {
 			
 			if (!typeAndMethodInfos.Any()) {
 				TestLogger.Log("no tests found. please set \"[MTest]\" attribute to method.", true);
-				return;
+				yield break;
 			}
 
 			var passed = 0;
@@ -73,6 +74,7 @@ namespace Miyamasu {
 			TestLogger.Log("tests started.", true);
 			
 			var totalMethodCount = typeAndMethodInfos.Count();
+			var allTestsDone = false;
 
 			// generate waiting thread for waiting asynchronous(=running on MainThread or other thread) ops on Not-MainThread.
 			Thread thread = null;
@@ -116,13 +118,8 @@ namespace Miyamasu {
 						TestLogger.Log("tests of class:" + typeAndMethodInfo.type + " done. classes:" + count + " of " + totalMethodCount, true);
 					}
 
-					TestLogger.Log("tests end. passed:" + passed + " failed:" + failed, true);
-					thread.Abort();
-
-					// ここでMainThreadで実行できる関数でEditorApplication.Exit(0);を実行すると良い気がする。そもそもここまでCloudBuild上で待ってくれてるのだろうか。
-					TestLogger.LogEnd();
-
 					Debug.Log("allover, RunTestsOnEditorMainThread");
+					allTestsDone = true;
 				}
 			);
 			try {
@@ -131,8 +128,17 @@ namespace Miyamasu {
 				TestLogger.Log("Miyamasu TestRunner error:" + e);
 			}
 
-			// この関数自体をcoroutineに落とせれば、メインスレッド停止しないでものらりくらりできそうな気がする。
+			
 			Debug.Log("done, RunTestsOnEditorMainThread");
+			while (true) {
+				if (allTestsDone) break; 
+				yield return null;
+			}
+
+			TestLogger.Log("tests end. passed:" + passed + " failed:" + failed, true);
+			TestLogger.LogEnd();
+			
+			GameObject.DestroyImmediate(runner.gameObject);
 		}
 		
 		/**

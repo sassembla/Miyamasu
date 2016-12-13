@@ -23,13 +23,26 @@ namespace Miyamasu {
 			#endif
 		}
 
+		
 		/**
 			テスト実行
 		*/
 		public static void RunTests () {
 			var testRunner = new MiyamasuTestRunner();
-			testRunner.RunTestsOnEditorMainThread();
+			
+			CoroutineHolder runner = null;
+
+			var runnerObj = GameObject.Find("MiyamasuTestRunner") as GameObject;
+			if (runnerObj == null) {
+				runner = new GameObject("MiyamasuTestRunner").AddComponent<CoroutineHolder>();
+			} else {
+				runner = runnerObj.GetComponent<CoroutineHolder>();
+			}
+
+			runner.StartCoroutine(testRunner.RunTestsOnEditorMainThread(runner));
 		}
+
+		public class CoroutineHolder : MonoBehaviour {}
 	}
 
 
