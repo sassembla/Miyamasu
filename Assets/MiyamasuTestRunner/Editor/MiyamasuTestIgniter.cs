@@ -14,6 +14,7 @@ namespace Miyamasu {
 			#if CLOUDBUILD
 			{
 				// do nothing.
+				Debug.LogError("not start testing from build handle.");
 			}
 			#else
 			{
@@ -27,6 +28,7 @@ namespace Miyamasu {
 			テスト実行
 		*/
 		public static void RunTests () {
+			Debug.LogError("test running.");
 			var testRunner = new MiyamasuTestRunner();
 			testRunner.RunTestsOnEditorMainThread();
 		}
