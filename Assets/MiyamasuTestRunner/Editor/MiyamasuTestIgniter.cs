@@ -38,4 +38,10 @@ namespace Miyamasu {
 			RunTests();
 		}
 	}
+
+	public static class Something {
+		public static void Run () {
+			Debug.LogError("run!");
+		}
+	}
 }
