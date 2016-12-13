@@ -37,11 +37,11 @@ namespace Miyamasu {
 			Debug.LogError("start testing from method.");
 			RunTests();
 		}
-	}
+	}	
+}
 
-	public static class Something {
-		public static void Run () {
-			Debug.LogError("run!");
-		}
+public static class Something {
+	public static void Run () {
+		Debug.LogError("run!");
 	}
 }
