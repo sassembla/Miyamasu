@@ -21,7 +21,7 @@ namespace Miyamasu {
 			*/
 
 			// このコンパイルフラグが実行時に判断できるといいんだけどな〜 取得法がわからん。
-			
+
 			#if CLOUDBUILD
 			{
 				// do nothing.
@@ -72,8 +72,10 @@ namespace Miyamasu {
 				// }
 				var contiune = cor.MoveNext();
 				if (!contiune) {
-					// もしコマンドラインからだったら、終了する。
-					EditorApplication.Exit(0);
+					var commandLineOptions = System.Environment.CommandLine;
+					if (commandLineOptions.Contains("-batchmode")) {	
+						EditorApplication.Exit(0);
+					}
 				}
 			};
 
