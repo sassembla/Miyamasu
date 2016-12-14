@@ -180,15 +180,31 @@ namespace Miyamasu {
 			}
 		}
 
-		public void RunOnMainThread (Action invokee) {
+		/**
+			Run action on UnityEditor's MainThread.
+			let set [bool sync] = false if you want to execute action on MainThread but async.
+			default is sync.
+		*/
+		public void RunOnMainThread (Action invokee, bool @sync = true) {
 			UnityEditor.EditorApplication.CallbackFunction runner = null;
+			
+			var done = false;
+			
 			runner = () => {
 				// run only once.
 				EditorApplication.update -= runner;
 				if (invokee != null) invokee();
+				done = true;
+				// 実際にインスタンスを作ってUpdateさせるモード、大差なかった。残念。
+				// var sr = new GameObject("test");
+				// var c = sr.AddComponent<CoroutineExecutor>();
+				// c.Set(invokee);
 			};
 			
 			EditorApplication.update += runner;
+			if (@sync) {
+				WaitUntil(() => done);
+			}
 		}
 		
 
