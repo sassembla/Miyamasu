@@ -55,8 +55,7 @@ namespace Miyamasu {
 			}
 		}
 
-		public IEnumerator RunTestsOnEditorMainThread (MiyamasuTestIgniter.CoroutineHolder runner) {
-			Debug.Log("RunTestsOnEditorMainThread");
+		public IEnumerator RunTestsOnEditorMainThread () {
 			var typeAndMethodInfos = Assembly.GetExecutingAssembly().GetTypes()
 				.Select(t => new TypeAndMedhods(t))
 				.Where(tAndMInfo => tAndMInfo.hasTests)
@@ -118,18 +117,18 @@ namespace Miyamasu {
 						TestLogger.Log("tests of class:" + typeAndMethodInfo.type + " done. classes:" + count + " of " + totalMethodCount, true);
 					}
 
-					Debug.Log("allover, RunTestsOnEditorMainThread");
 					allTestsDone = true;
 				}
 			);
+			
 			try {
 				thread.Start();
 			} catch (Exception e) {
 				TestLogger.Log("Miyamasu TestRunner error:" + e);
 			}
 
-			
-			Debug.Log("done, RunTestsOnEditorMainThread");
+			yield return null;
+
 			while (true) {
 				if (allTestsDone) break; 
 				yield return null;
@@ -137,8 +136,6 @@ namespace Miyamasu {
 			
 			TestLogger.Log("tests end. passed:" + passed + " failed:" + failed, true);
 			TestLogger.LogEnd();
-			
-			GameObject.DestroyImmediate(runner.gameObject);
 		}
 		
 		/**
