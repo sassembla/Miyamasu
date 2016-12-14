@@ -55,6 +55,8 @@ namespace Miyamasu {
 			}
 		}
 
+		public object lockObj = new object();
+
 		public IEnumerator RunTestsOnEditorMainThread () {
 			var typeAndMethodInfos = Assembly.GetExecutingAssembly().GetTypes()
 				.Select(t => new TypeAndMedhods(t))
@@ -121,12 +123,13 @@ namespace Miyamasu {
 				}
 			);
 			
+
 			try {
 				thread.Start();
 			} catch (Exception e) {
 				TestLogger.Log("Miyamasu TestRunner error:" + e);
 			}
-
+			
 			yield return null;
 
 			while (true) {
@@ -136,6 +139,7 @@ namespace Miyamasu {
 			
 			TestLogger.Log("tests end. passed:" + passed + " failed:" + failed, true);
 			TestLogger.LogEnd();
+			
 		}
 		
 		/**
