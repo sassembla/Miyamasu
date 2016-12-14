@@ -76,7 +76,7 @@ namespace Miyamasu {
 			var totalMethodCount = typeAndMethodInfos.Count();
 			var allTestsDone = false;
 
-			// generate waiting thread for waiting asynchronous(=running on MainThread or other thread) ops on Not-MainThread.
+			// generate waitingThread for waiting asynchronous(=running on MainThread or other thread) ops on Not-MainThread.
 			Thread thread = null;
 			thread = new Thread(
 				() => {
@@ -134,7 +134,7 @@ namespace Miyamasu {
 				if (allTestsDone) break; 
 				yield return null;
 			}
-
+			
 			TestLogger.Log("tests end. passed:" + passed + " failed:" + failed, true);
 			TestLogger.LogEnd();
 			
