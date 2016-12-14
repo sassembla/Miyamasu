@@ -2,6 +2,13 @@
 using System.Collections;
 using System;
 
+/*
+	Unity Editorのupdateから、特定の操作でこのExecuteInEditModeが付いているインスタンスのUpdateとかを「直に触らず」実行することができることがわかった。
+	が、特にUnityEditorそれ自体から実行する場合との差がなかった(直接的にinvoke recordが残らないという差はあるが)ので、
+	お蔵入り。
+
+	コードとしてユーザーが使うコードを模倣して描くにはすごくいいと思うが、それ以外の用途はなさげ。
+*/
 namespace Miyamasu {
 	[ExecuteInEditMode] public class CoroutineExecutor : MonoBehaviour {
 		IEnumerator enu;
@@ -15,7 +22,7 @@ namespace Miyamasu {
 		}
 		// Use this for initialization
 		void Start () {
-			// StartCoroutine(enu);
+			StartCoroutine(enu);// これで渡されてきたcoroutineを引き回してくれる
 		}
 		
 		bool first = true;

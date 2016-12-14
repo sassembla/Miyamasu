@@ -3,7 +3,7 @@ UnitTesting-kit and TestRunner on Unity.
 
 This TestRunner can wait async / Unity's MainThread operation on single context. with "WaitUntil()" method.
 
-v 1.0.1
+v 1.1.0
 
 ## Requirement of Tests on Miyamasu
 1. *.cs file which contains tests should be under "Editor" folder.
@@ -52,7 +52,7 @@ WaitUntil(() => true, 1);
 // or, Timeout Exception raised.
 ```
 
-### RunOnMainThread(Action) method
+### RunOnMainThread(Action, bool sync=true) method
 Can run action into Unity's MainThread(almost perfect pseudo.)
 
 ### report goes to logfile.
@@ -82,6 +82,13 @@ log:tests end. passed:3 failed:1
 			dataPath = UnityEngine.Application.dataPath;// this code is only available Unity's MainThread.
 		};
 		
+		
+		/*
+			default behaviour is "sync."
+			this thread -> mainThread -> back to this thread.
+			and async mode is optionally available.
+			set [bool sync] = false.
+		*/ 
 		RunOnMainThread(onMainThread);
 
         /*
