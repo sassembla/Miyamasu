@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using Miyamasu;
@@ -8,11 +10,11 @@ using Miyamasu;
 */
 public class SampleTest : MiyamasuTestRunner {
 	[MSetup] public void Setup () {
-		TestLogger.Log("setup");
+		// Log("setup");
 	}
 
 	[MTeardown] public void Teardown () {
-		TestLogger.Log("teardown");
+		// Log("teardown");
 	}
 
 	/**
@@ -71,30 +73,93 @@ public class SampleTest : MiyamasuTestRunner {
 		);
     }
 
-	[MTest] public void SampleSuccessAsyncOnMainThread () {
+	[MTest] public void SampleSuccessOnMainThread () {
 		var dataPath = string.Empty;
 
 		/*
 			sometimes we should test the method which can only run in Unity's MainThread.
-			this async operation will be running in Unity's Main Thread.
+			this Action will be running in Unity's Main Thread.
 		*/
 		Action onMainThread = () => {
 			dataPath = UnityEngine.Application.dataPath;// this code is only available Unity's MainThread.
 		};
 
+		/*
+			run this Action on the MainThread.
+			wait that Action's end synchronously.
+		*/
 		RunOnMainThread(onMainThread);
+
+		/*
+			check if "dataPath" is not null or empty.
+		*/ 
+		Assert(!string.IsNullOrEmpty(dataPath), "dataPath is empty or null.");
+	}
+
+	[MTest] public void SampleSuccessOnMainThreadAsync () {
+		var dataPath = string.Empty;
+
+		/*
+			sometimes we should test the method which can only run in Unity's MainThread.
+			this Action will be running in Unity's Main Thread.
+		*/
+		Action onMainThread = () => {
+			dataPath = UnityEngine.Application.dataPath;// this code is only available Unity's MainThread.
+		};
+
+		/*
+			run async.
+			do not wait the end of the Action.
+		*/
+		RunOnMainThread(onMainThread, false);
 
 		/*
 			wait until "dataPath" is not null or empty.
 		*/ 
-		WaitUntil(() => !string.IsNullOrEmpty(dataPath), 1);
+		WaitUntil(() => !string.IsNullOrEmpty(dataPath), 1, "failed to set dataPath in time.");
+	}
+
+	[MTest] public void SampleSuccessEnumeratorOnMainThread () {
+		var words = new List<string>();
+		
+		/*
+			run coroutine on Unity's main thread.
+			to the end of coroutine. (until coroutine.MoveNext() returns false.)
+			synchronously.
+		*/
+		RunEnumeratorOnMainThread(ShouldRunOnMainThreadEnum(words));
+
+		Assert(words.Count == 3, "not match, count:" + words.Count);
+	}
+	
+	private IEnumerator ShouldRunOnMainThreadEnum (List<string> words) {
+		words.Add("C#");
+		yield return null;
+		words.Add("is");
+		yield return null;
+		words.Add("awesome.");
+	}
+
+	[MTest] public void SampleSuccessEnumeratorOnMainThreadAsync () {
+		var words = new List<string>();
+
+		/*
+			run coroutine on Unity's main thread.
+			to the end of coroutine. (until coroutine.MoveNext() returns false.)
+			this is asynchronous version.
+		*/
+		RunEnumeratorOnMainThread(ShouldRunOnMainThreadEnum(words), false);
+
+		// wait above coroutine sets 3 words to "words" list.
+		WaitUntil(() => words.Count == 3, 1, "not match, count:" + words.Count);
+		Log("result:" + string.Join(" ", (words.ToArray())));
 	}
 	
 	[MTest] public void SampleFailByTimeout () {
 		var done = false;
 
 		/*
-			only timeout happens.
+			timeout happens.
         */ 
         WaitUntil(
 			() => done, 

@@ -1,15 +1,12 @@
-using System;
-using System.Net;
-using System.Net.Sockets;
 using Miyamasu;
 using UniRx;
 using UnityEngine;
+
 /**
-samples of test.
+	samples of test.
 */
 public class SampleTest2 : MiyamasuTestRunner {
 	[MSetup] public void Setup () {
-		Debug.Log("before");
 		RunOnMainThread(
 			() => {
 				Debug.Log("on main thread");
@@ -18,12 +15,11 @@ public class SampleTest2 : MiyamasuTestRunner {
 				*/
 				Observable.EveryUpdate().Subscribe(
 					_ => {
-						Debug.Log("hereComes");
+						// do nothing.
 					}
 				);
 			}
 		);
-		Debug.Log("after");
 	}
 	[MTeardown] public void Teardown () {
 		RunOnMainThread(
@@ -40,17 +36,10 @@ public class SampleTest2 : MiyamasuTestRunner {
 					we should destroy created instance. and should be automate this feature.
 				*/
 				var obj = GameObject.Find("MainThreadDispatcher");
-				if (obj != null) GameObject.DestroyImmediate(obj); 
+				if (obj != null) {
+					GameObject.DestroyImmediate(obj); 
+				}
 			}
 		);
 	}
-
-	[MTest] public void First () {
-		// do nothing.
-	}
-	
-	[MTest] public void Second () {
-		// do nothing.
-	}
-
 }

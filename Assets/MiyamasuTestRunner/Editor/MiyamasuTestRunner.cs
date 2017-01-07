@@ -74,9 +74,8 @@ namespace Miyamasu {
 
 			TestLogger.Log("tests started.", true);
 			
-			var totalMethodCount = typeAndMethodInfos.Count();
-			var allTestsDone = false;
-
+			var totalMethodCount = typeAndMethodInfos.Count() -1;
+			
 			// generate waitingThread for waiting asynchronous(=running on MainThread or other thread) ops on Not-MainThread.
 			Thread thread = null;
 			thread = new Thread(
@@ -84,42 +83,50 @@ namespace Miyamasu {
 					var count = 0;
 					foreach (var typeAndMethodInfo in typeAndMethodInfos) {
 						var instance = Activator.CreateInstance(typeAndMethodInfo.type);
-
+						
+						TestLogger.Log("start tests of class:" + typeAndMethodInfo.type + ". classes:" + count + " of " + totalMethodCount, true);
 						foreach (var methodInfo in typeAndMethodInfo.asyncMethodInfos) {
-							if (typeAndMethodInfo.setupMethodInfo != null) typeAndMethodInfo.setupMethodInfo.Invoke(instance, null);
 							var methodName = methodInfo.Name;
+							TestLogger.Log("start methodName:" + methodName, true);
+
+							// setup.
+							try {
+								if (typeAndMethodInfo.setupMethodInfo != null) {
+									typeAndMethodInfo.setupMethodInfo.Invoke(instance, null);
+								}
+							} catch (Exception e) {
+								failed++;
+								LogTestFailed(e, methodName);
+								continue;
+							}
 							
+							/*
+								run test.
+							*/
 							try {
 								methodInfo.Invoke(instance, null);
 								passed++;
 							} catch (Exception e) {
 								failed++;
-								
-								var location = string.Empty;
-								var errorStackLines = e.ToString().Split('\n');
-								
-								for (var i = 0; i < errorStackLines.Length; i++) {
-									var line = errorStackLines[i];
-									
-									if (line.StartsWith("  at Miyamasu.MiyamasuTestRunner.Assert")) {
-										location = errorStackLines[i+1].Substring("  at ".Length);
-										break;
-									}
-									if (line.StartsWith("  at Miyamasu.MiyamasuTestRunner.WaitUntil")) {
-										location = errorStackLines[i+1].Substring("  at ".Length);
-										break;
-									}
-								}
-
-								TestLogger.Log("test FAILED @ " + location + "by:" + e.InnerException.Message, true);
+								LogTestFailed(e);
 							}
-							if (typeAndMethodInfo.teardownMethodInfo != null) typeAndMethodInfo.teardownMethodInfo.Invoke(instance, null);
+
+							// teardown.
+							try {
+								if (typeAndMethodInfo.teardownMethodInfo != null) {
+									typeAndMethodInfo.teardownMethodInfo.Invoke(instance, null);
+								}
+							} catch (Exception e) {
+								LogTestFailed(e, methodName);
+							}
 						}
+
+						TestLogger.Log("done tests of class:" + typeAndMethodInfo.type + ". classes:" + count + " of " + totalMethodCount, true);
+						
 						count++;
-						TestLogger.Log("tests of class:" + typeAndMethodInfo.type + " done. classes:" + count + " of " + totalMethodCount, true);
 					}
 
-					allTestsDone = true;
+					thread.Abort();
 				}
 			);
 			
@@ -133,13 +140,33 @@ namespace Miyamasu {
 			yield return null;
 
 			while (true) {
-				if (allTestsDone) break; 
+				if (!thread.IsAlive) break; 
 				yield return null;
 			}
 			
 			TestLogger.Log("tests end. passed:" + passed + " failed:" + failed, true);
-			TestLogger.LogEnd();
+			TestLogger.LogEnd();			
+		}
+
+		private void LogTestFailed (Exception e, string subLocation=null) {
+			var location = string.Empty;
+			var errorStackLines = e.ToString().Split('\n');
 			
+			for (var i = 0; i < errorStackLines.Length; i++) {
+				var line = errorStackLines[i];
+				
+				if (line.StartsWith("  at Miyamasu.MiyamasuTestRunner.Assert")) {
+					location = errorStackLines[i+1].Substring("  at ".Length);
+					break;
+				}
+				if (line.StartsWith("  at Miyamasu.MiyamasuTestRunner.WaitUntil")) {
+					location = errorStackLines[i+1].Substring("  at ".Length);
+					break;
+				}
+			}
+
+			if (string.IsNullOrEmpty(subLocation)) TestLogger.Log("test FAILED by:" + e.InnerException.Message + " @ " + location, true);
+			else TestLogger.Log("test FAILED by:" + e.InnerException.Message + " @ " + location + " of " + subLocation, true);
 		}
 		
 		/**
@@ -148,26 +175,27 @@ namespace Miyamasu {
 		public void WaitUntil (Func<bool> isCompleted, int timeoutSec=1, string message="") {
 			var methodName = new Diag.StackFrame(1).GetMethod().Name;
 			Exception error = null;
-
+			
 			var resetEvent = new ManualResetEvent(false);
 			var waitingThread = new Thread(
 				() => {
 					resetEvent.Reset();
-					var startTime = DateTime.Now.Second;
+					var endTick = (DateTime.Now + TimeSpan.FromSeconds(timeoutSec)).Ticks;
 					
 					while (!isCompleted()) {
-						var current = DateTime.Now.Second;
-						var distanceSeconds = (current - startTime);
-
-						if (0 < timeoutSec && timeoutSec < distanceSeconds) {
-							if (!string.IsNullOrEmpty(message)) error = new Exception("timeout. reason:" + message);
-							else error = new Exception("timeout.");
+						var current = DateTime.Now.Ticks;
+						
+						if (0 < timeoutSec && endTick < current) {
+							if (!string.IsNullOrEmpty(message)) {
+								error = new Exception("timeout. reason:" + message);
+							} else {
+								error = new Exception("timeout.");
+							}
 							break;
 						}
 						
 						System.Threading.Thread.Sleep(10);
 					}
-
 					resetEvent.Set();
 				}
 			);
@@ -175,6 +203,7 @@ namespace Miyamasu {
 			waitingThread.Start();
 			
 			resetEvent.WaitOne();
+			
 			if (error != null) {
 				throw error;
 			}
@@ -203,30 +232,71 @@ namespace Miyamasu {
 			
 			EditorApplication.update += runner;
 			if (@sync) {
-				WaitUntil(() => done);
+				WaitUntil(() => done, -1);
 			}
+		}
+		
+		/**
+			IEnumerator version. continue running while IEnumerator is running.
+		*/
+		public void RunEnumeratorOnMainThread (IEnumerator invokee, bool @sync = true) {
+			UnityEditor.EditorApplication.CallbackFunction runner = null;
+			
+			var done = false;
+			
+			runner = () => {
+				var result = invokee.MoveNext();
+				if (!result) {
+					EditorApplication.update -= runner;
+					done = true;
+				}
+			};
+			
+			EditorApplication.update += runner;
+			if (@sync) {
+				WaitUntil(() => done, -1);
+			}
+		}
+
+		public bool IsTestRunningInPlayingMode () {
+			bool isRunningInPlayingMode = false;
+			RunOnMainThread(
+				() => {
+					isRunningInPlayingMode = Application.isPlaying;
+				}
+			);
+			return isRunningInPlayingMode;
+		}
+
+		public void SkipCurrentTest (string message) {
+			throw new Exception("test skipped with message:" + message);
 		}
 		
 
 		public void Assert (bool condition, string message) {
+			var callerMethodName = new Diag.StackFrame(2).GetMethod().Name;
 			if (!condition) {
-				throw new Exception("assert failed:" + message);
+				throw new Exception("assert failed @ " + callerMethodName + " message:" + message);
 			}
 		}
 
 		public const string MIYAMASU_TESTLOG_FILE_NAME = "miyamasu_test.log";
 
 		public static class TestLogger {
+			static TestLogger () {
+				// ログ操作に関する処理で、ハンドラ周りをセットすると良さそう。
+			}
+
 			public static bool outputLog = true;
 			private static object lockObject = new object();
 
 			private static string pathOfLogFile;
 			private static StringBuilder _logs = new StringBuilder();
 			
-			public static void Log (string message, bool export=false) {
+			public static void Log (string message, bool writeSoon=false) {
 				if (outputLog) UnityEngine.Debug.Log("log:" + message);
 				lock (lockObject) {
-					if (!export) {
+					if (!writeSoon) {
 						_logs.AppendLine(message);
 						return;
 					}
@@ -269,6 +339,13 @@ namespace Miyamasu {
 					}
 				}
 			}
+		}
+
+		/**
+			write log message into test log.
+		*/
+		public static void Log (string message) {
+			TestLogger.Log(message, true);
 		}
 	}
 
