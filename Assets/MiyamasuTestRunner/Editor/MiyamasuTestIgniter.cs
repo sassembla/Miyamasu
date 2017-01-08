@@ -137,7 +137,8 @@ namespace Miyamasu {
 
 	public class TestEntryPoint {
 		[Test] public static void Start () {
-			MiyamasuTestIgniter.RunTests();
+			Debug.Log("another test method.");
+			// MiyamasuTestIgniter.RunTests();
 		}
 	}
 }
