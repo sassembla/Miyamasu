@@ -82,13 +82,10 @@ namespace Miyamasu {
 				}
 			};
 
-			// ここか〜〜。待てないんだよな。動いているんだけど、Editorのupdateがたぶん走ってない。
+			
 			Debug.Log("set exe.");
 			EditorApplication.update += exe;
-			EditorApplication.update += () => {
-				Debug.Log("editor update is running.");
-			};
-
+			
 			// // これでコンソールアプリとしての寿命が伸びてくれるといいな~、、、と思うのだが、なかなか上手くいかない。
 
 			// x
@@ -133,9 +130,8 @@ namespace Miyamasu {
 	public class CloudBuildTestEntryPoint {
 		[Test] public static void Start () {
 			Debug.Log("before set exe.");
-			MiyamasuTestIgniter.RunTests();
+			// MiyamasuTestIgniter.RunTests();
 			Debug.Log("set exe done.");
-
 		}
 	}
 
