@@ -37,7 +37,7 @@ namespace Miyamasu {
 			}
 			#endif
 
-			RunTests();
+			// RunTests();
 		}
 
 		
@@ -131,7 +131,7 @@ namespace Miyamasu {
 		[Test] public static void Start () {
 			Debug.Log("before set exe.");
 			GameObject go = new GameObject("test");
-			var mb = go.AddComponent<MonoBehaviour>();
+			var mb = go.AddComponent<MB>();
 			var testRunner = new MiyamasuTestRunner();
 			var cor = testRunner.RunTestsOnEditorMainThread();
 
