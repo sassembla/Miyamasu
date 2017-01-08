@@ -1,11 +1,13 @@
 using System;
 using Diag = System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using System.ComponentModel;
+using System.Collections;
 
 namespace Miyamasu {
 	/*
@@ -46,7 +48,7 @@ namespace Miyamasu {
 		*/
 		public static void RunTests () {
 			var testRunner = new MiyamasuTestRunner();
-			var cor = testRunner.RunTestsOnEditorMainThread();
+			var cor = testRunner.RunTestsOnEditorMainThread(() => {});
 			
 			// var sr = new GameObject("test");
 			// var c = sr.AddComponent<CoroutineExecutor>();
@@ -133,13 +135,76 @@ namespace Miyamasu {
 			GameObject go = new GameObject("test");
 			var mb = go.AddComponent<MB>();
 			var testRunner = new MiyamasuTestRunner();
-			var cor = testRunner.RunTestsOnEditorMainThread();
+			
+			var done = false;
+			var cor = testRunner.RunTestsOnEditorMainThread(
+				() => {
+					done = true;
+				}
+			);
 
 			mb.StartCoroutine(cor);
+			// WaitUntil(() => {return done;});
+			
 			// MiyamasuTestIgniter.RunTests();// というわけで、メインスレッドで実行する、という形のバージョンを用意すれば、どうにかなるのかもしれない。単にMonoBehaviourを作って打ち込むのでもいいのかも？
 			Debug.Log("set exe done.");
 		}
+
+		static SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1,1);
+		
+		[Test] public static async Task AsyncLambdaSupport () {
+
+			// GameObject go = new GameObject("test");
+			// var mb = go.AddComponent<MB>();
+			// var testRunner = new MiyamasuTestRunner();
+			
+			// var done = false;
+			// var cor = testRunner.RunTestsOnEditorMainThread(
+			// 	() => {
+			// 		done = true;
+			// 	}
+			// );
+
+			// mb.StartCoroutine(cor);
+			// // throwing asynchronously
+			// // Assert.That(async () => await ThrowAsync(), Throws.TypeOf<InvalidOperationException>());
+
+			// // // returning values asynchronously
+			// // Assert.That(async () => await ReturnOneAsync(), Is.EqualTo(1));
+
+			// // // "After" works with async methods too
+			// // Assert.That(async () => await ResutnOneAsync(), Is.EqualTo(1).After(100));
+			// var task1 = HelloWorldAsync(() => done);
+
+			// Debug.Log("b");
+			// Task.WaitAll(task1);// 結局ここでロックしちゃう。ふむ、ダメ。
+			// Debug.Log("a");
+
+			await semaphoreSlim.WaitAsync();  
+			try  
+			{
+				Debug.Log("直前");
+				await Task.Delay(1000);
+				Debug.Log("直後");
+			}
+			finally  
+			{
+				Debug.Log("こっちにきてる");
+				//When the task is ready, release the semaphore. It is vital to ALWAYS release the semaphore when we are ready, or else we will end up with a Semaphore that is forever locked.
+				//This is why it is important to do the Release within a try...finally clause; program execution may crash or take a different path, this way you are guaranteed execution
+				semaphoreSlim.Release();
+				Debug.Log("抜けた");
+			}
+		}
+
+		static async Task HelloWorldAsync (Func<bool> f) {
+            await Task.Run(() => {
+			   Debug.Log("fmm");
+            });
+        }
 	}
+	
+
 
 	// public class TestEntryPoint {
 	// 	[Test] public static void Start () {

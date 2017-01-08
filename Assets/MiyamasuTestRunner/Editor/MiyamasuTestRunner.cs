@@ -57,7 +57,7 @@ namespace Miyamasu {
 
 		public object lockObj = new object();
 
-		public IEnumerator RunTestsOnEditorMainThread () {
+		public IEnumerator RunTestsOnEditorMainThread (Action done) {
 			var typeAndMethodInfos = Assembly.GetExecutingAssembly().GetTypes()
 				.Select(t => new TypeAndMedhods(t))
 				.Where(tAndMInfo => tAndMInfo.hasTests)
@@ -145,7 +145,8 @@ namespace Miyamasu {
 			}
 			
 			TestLogger.Log("tests end. passed:" + passed + " failed:" + failed, true);
-			TestLogger.LogEnd();			
+			TestLogger.LogEnd();
+			done();
 		}
 
 		private void LogTestFailed (Exception e, string subLocation=null) {
