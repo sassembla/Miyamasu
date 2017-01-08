@@ -130,7 +130,13 @@ namespace Miyamasu {
 	public class CloudBuildTestEntryPoint {
 		[Test] public static void Start () {
 			Debug.Log("before set exe.");
-			// MiyamasuTestIgniter.RunTests();
+			GameObject go = new GameObject("test");
+			var mb = go.AddComponent<MonoBehaviour>();
+			var testRunner = new MiyamasuTestRunner();
+			var cor = testRunner.RunTestsOnEditorMainThread();
+
+			mb.StartCoroutine(cor);
+			// MiyamasuTestIgniter.RunTests();// というわけで、メインスレッドで実行する、という形のバージョンを用意すれば、どうにかなるのかもしれない。単にMonoBehaviourを作って打ち込むのでもいいのかも？
 			Debug.Log("set exe done.");
 		}
 	}
