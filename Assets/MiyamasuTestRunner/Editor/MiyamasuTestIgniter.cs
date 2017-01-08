@@ -72,6 +72,9 @@ namespace Miyamasu {
 				// }
 				var contiune = cor.MoveNext();
 				if (!contiune) {
+					/*
+						quit editor app if executed in batch mode.
+					*/
 					var commandLineOptions = System.Environment.CommandLine;
 					if (commandLineOptions.Contains("-batchmode")) {	
 						EditorApplication.Exit(0);
@@ -79,6 +82,8 @@ namespace Miyamasu {
 				}
 			};
 
+			// ここか〜〜。待てないんだよな。
+			Debug.Log("set exe.");
 			EditorApplication.update += exe;
 
 			// // これでコンソールアプリとしての寿命が伸びてくれるといいな~、、、と思うのだが、なかなか上手くいかない。
@@ -124,7 +129,9 @@ namespace Miyamasu {
 	*/
 	public class CloudBuildTestEntryPoint {
 		[Test] public static void Start () {
+			Debug.Log("before set exe.");
 			MiyamasuTestIgniter.RunTests();
+			Debug.Log("set exe done.");
 		}
 	}
 
