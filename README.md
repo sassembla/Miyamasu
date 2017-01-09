@@ -16,11 +16,15 @@ All tests are executed in sub threads.
 Also, you can execute the method you want to execute on Unity's MainThread in the test.
 
 ## How to run tests
-**Run Miyamasu on Player** : simply play app. all tests will run on playmode silently.  
+**Run Miyamasu on Player on Editor** : simply play app. all tests will run on playmode.  
 
 **Run Miyamasu on Editor** : write code of tests & compile it, then Miyamasu start running tests automatically.  
 
 **Run Miyamasu on Batch**  : 'sh run_miyamasu_tests.sh' or 'exec run_miyamasu_tests.bat'.  
+
+**Run Miyamasu on Player** : in progress.
+
+**Run Miyamasu on CloudBuild** : in progress.
 
 
 ## Where I love "Miyamasu"
