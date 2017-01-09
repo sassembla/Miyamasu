@@ -5,7 +5,7 @@ Make asynchronous tests easy.
 This TestRunner can selectively run tests **on asynchronous context** or **on Unity's MainThread**.
 
 
-v 1.2.0
+v 1.3.0
 
 ## Motivation
 Running asynchronous testing on Unity is still hard. Because some methods of Unity are restricted as being executed on Unity's MainThread.
@@ -14,6 +14,13 @@ Miyamas helps it.
 
 All tests are executed in sub threads.  
 Also, you can execute the method you want to execute on Unity's MainThread in the test.
+
+## How to run tests
+**Run Miyamasu on Player** : simply play app. all tests will run on playmode silently.  
+
+**Run Miyamasu on Editor** : write code of tests & compile it, then Miyamasu start running tests automatically.  
+
+**Run Miyamasu on Batch**  : 'sh run_miyamasu_tests.sh' or 'exec run_miyamasu_tests.bat'.  
 
 
 ## Where I love "Miyamasu"
