@@ -22,7 +22,7 @@ namespace Miyamasu {
 		}
 		// Use this for initialization
 		void Start () {
-			StartCoroutine(enu);// これで渡されてきたcoroutineを引き回してくれる
+			StartCoroutine(enu);
 		}
 		
 		bool first = true;
