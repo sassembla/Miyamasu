@@ -91,43 +91,7 @@ namespace Miyamasu {
 			
 			// playing mode on Editor.
 			if (EditorApplication.isPlayingOrWillChangePlaymode) {
-				var coroutine = WaitUntilTrueThen(
-					() => {
-						return Application.isPlaying;
-					},
-					() => {
-						RunTests(
-							TestRunnerMode.Player,
-							(iEnum) => {
-								/*
-									set gameObject from Editor thread(pseudo-mainThread.)
-								*/
-								
-								RunOnEditorThread(
-									() => {
-										var go = new GameObject("MiyamasuTestMainThreadRunner");
-										go.hideFlags = go.hideFlags | HideFlags.HideAndDontSave;
-										
-										var mb = go.AddComponent<MainThreadRunner>();
-										mb.Commit(
-											iEnum,
-											() => {
-												GameObject.Destroy(go);
-											}
-										);
-									}
-								);
-							}, 
-							() => {
-								// do nothing.
-							}
-						);
-					}
-				);
-
-				EditorApplication.update += () => {
-					coroutine.MoveNext();
-				};
+				// do nothing.
 			} else {
 				// editor mode.
 				RunTests(
