@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using Diag = System.Diagnostics;
 using UnityEngine;
+using System.Diagnostics;
 
 /**
 	MiyamasuTestRunner
@@ -19,6 +20,9 @@ namespace Miyamasu {
 	public class MiyamasuTestRunner {
 
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)] public static void RunTestsFromCode () {
+			var runnerSettings = Settings.LoadSettings();
+			if (!runnerSettings.runOnPlay) return;
+			
 			var go = new GameObject("MiyamasuTestMainThreadRunner");
 			go.hideFlags = go.hideFlags | HideFlags.HideAndDontSave;
 			
@@ -107,6 +111,8 @@ namespace Miyamasu {
 
 			thread = new Thread(
 				() => {
+					Stopwatch s = new Stopwatch();
+					s.Start();
 					var count = 0;
 					foreach (var typeAndMethodInfo in typeAndMethodInfos) {
 						var instance = Activator.CreateInstance(typeAndMethodInfo.type);
@@ -153,6 +159,10 @@ namespace Miyamasu {
 					}
 					
 					TestLogger.Log("tests end. passed:" + passed + " failed:" + failed, true);
+
+					var elapsed = s.Elapsed;
+					TestLogger.Log("elapsed:" + elapsed);
+
 					TestLogger.LogEnd();
 					
 					/*
@@ -187,8 +197,8 @@ namespace Miyamasu {
 				}
 			}
 
-			if (string.IsNullOrEmpty(subLocation)) TestLogger.Log("test FAILED by:" + e.InnerException.Message + " @ " + location, true);
-			else TestLogger.Log("test FAILED by:" + e.InnerException.Message + " @ " + location + " of " + subLocation, true);
+			if (string.IsNullOrEmpty(subLocation)) TestLogger.LogError("test FAILED by:" + e.InnerException.Message + " @ " + location, true);
+			else TestLogger.LogError("e:" + e + " test FAILED by:" + e.InnerException.Message + " @ " + location + " of " + subLocation, true);
 		}
 		
 		/**
@@ -310,7 +320,7 @@ namespace Miyamasu {
 			static TestLogger () {
 				// ログ操作に関する処理で、ハンドラ周りをセットすると良さそう。
 			}
-
+			
 			public static bool outputLog = true;
 			private static object lockObject = new object();
 
@@ -319,30 +329,48 @@ namespace Miyamasu {
 			
 			public static void Log (string message, bool writeSoon=false) {
 				if (outputLog) UnityEngine.Debug.Log("log:" + message);
-				lock (lockObject) {
-					if (!writeSoon) {
-						_logs.AppendLine(message);
-						return;
-					}
+				_Log(message, writeSoon);
+			}
 
-					pathOfLogFile = MIYAMASU_TESTLOG_FILE_NAME;
-					
-					// file write
-					using (var fs = new FileStream(
-						pathOfLogFile,
-						FileMode.Append,
-						FileAccess.Write,
-						FileShare.ReadWrite)
-					) {
-						using (var sr = new StreamWriter(fs)) {
-							if (0 < _logs.Length) {
-								sr.WriteLine(_logs.ToString());
-								_logs = new StringBuilder();
+			public static void LogWarning (string message, bool writeSoon=false) {
+				if (outputLog) UnityEngine.Debug.LogWarning("log:" + message);
+				_Log(message, writeSoon);
+			}
+
+			public static void LogError (string message, bool writeSoon=false) {
+				if (outputLog) UnityEngine.Debug.LogError("log:" + message);
+				_Log(message, writeSoon);
+			}
+
+			private static void _Log (string message, bool writeSoon) {
+				#if UNITY_EDITOR
+				{
+					lock (lockObject) {
+						if (!writeSoon) {
+							_logs.AppendLine(message);
+							return;
+						}
+
+						pathOfLogFile = MIYAMASU_TESTLOG_FILE_NAME;
+						
+						// file write
+						using (var fs = new FileStream(
+							pathOfLogFile,
+							FileMode.Append,
+							FileAccess.Write,
+							FileShare.ReadWrite)
+						) {
+							using (var sr = new StreamWriter(fs)) {
+								if (0 < _logs.Length) {
+									sr.WriteLine(_logs.ToString());
+									_logs = new StringBuilder();
+								}
+								sr.WriteLine("log:" + message);
 							}
-							sr.WriteLine("log:" + message);
 						}
 					}
 				}
+				#endif
 			}
 
 			public static void LogEnd () {
