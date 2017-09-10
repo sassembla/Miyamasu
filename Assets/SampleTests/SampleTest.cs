@@ -202,15 +202,15 @@ public class MiyamasuTestRunner2Sample : MiyamasuTestRunner2 {
 
 public class MiyamasuTestRunner3Sample : MiyamasuTestRunner2 {
 	[MSetup2] public void Setup () {
-		Debug.Log("setup!");
+		Debug.Log("setup2!");
 	}
 
 	[MTeardown2] public void Teardown () {
-		Debug.Log("Teardown!");
+		Debug.Log("Teardown2!");
 	}
 
 	[MTest2] public IEnumerator Some () {
-		Debug.Log("before");
+		Debug.Log("before2");
 		
 		AreEqual("", "");
 		

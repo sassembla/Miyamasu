@@ -14,9 +14,7 @@ namespace Miyamasu {
 
 		public EditorOption () {
 			var settings = Settings.LoadSettings();
-			runOnCompiled = settings.runOnCompiled;
 			runOnPlay = settings.runOnPlay;
-			// Debug.Log("?? runOnCompiled:" + runOnCompiled + " runOnPlay:" + runOnPlay);
 		}
 
 
@@ -56,7 +54,6 @@ namespace Miyamasu {
 
 		public void Save () {
 			var settings = Settings.LoadSettings();
-			settings.runOnCompiled = runOnCompiled;
 			settings.runOnPlay = runOnPlay;
 			Settings.WriteSettings(settings);
 			Debug.Log("Miyamasu setting updated.");

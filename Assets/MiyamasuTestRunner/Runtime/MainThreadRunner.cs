@@ -1,51 +1,44 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 
 namespace Miyamasu {
 	public class MainThreadRunner : MonoBehaviour {
-		private List<EnumPair> readyEnums = new List<EnumPair>();
-		private List<EnumPair> runningEnums = new List<EnumPair>();
-		private List<EnumPair> doneEnums = new List<EnumPair>();
-		
+		private int index = 0;
 		private object lockObj = new object();
-
-		private struct EnumPair {
-			public IEnumerator iEnum;
-			public Action onDone;
-			public EnumPair (IEnumerator iEnum, Action onDone) {
-				this.iEnum = iEnum;
-				this.onDone = onDone;
+		IEnumerator Start () {
+			while (iEnumGens == null) {
+				yield return null;
 			}
+			
+			// wait for check isTestRunning or not.
+			yield return new WaitForSeconds(1);
+			
+			if (false) {
+				yield break;
+			}
+
+			yield return ContCor(iEnumGens);
 		}
-		void Update () {
-			lock (lockObj) {
-				foreach (var enumPair in readyEnums) {
-					runningEnums.Add(enumPair);
-				}
-				readyEnums.Clear();
+		
+		private Func<IEnumerator>[] iEnumGens;
+		public void SequentialExecute (Func<IEnumerator>[] iEnumGens) {
+			this.iEnumGens = iEnumGens;
+        }
+
+		private IEnumerator ContCor (Func<IEnumerator>[] iEnumGens) {
+			Back:
+			Debug.LogWarning("fmm-1 index:" + index);
+			if (index == iEnumGens.Length) {
+				yield break;
 			}
 
-			foreach (var runningEnum in runningEnums) {
-				if (!runningEnum.iEnum.MoveNext()) {
-					runningEnum.onDone();
-					doneEnums.Add(runningEnum);
-				}
-			}
-
-			if (0 < doneEnums.Count) {
-				foreach (var doneEnum in doneEnums) {
-					runningEnums.Remove(doneEnum);
-				}
-				doneEnums.Clear();
-			}
-		}
-
-		public void Commit (IEnumerator iEnum, Action onDone) {
-			lock (lockObj) {
-				readyEnums.Add(new EnumPair(iEnum, onDone));
-			}
+			yield return iEnumGens[index]();
+			index = index + 1;
+			Debug.LogWarning("fmm");
+			goto Back;
 		}
 	}
 }
