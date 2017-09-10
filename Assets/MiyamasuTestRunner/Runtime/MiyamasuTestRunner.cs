@@ -21,7 +21,12 @@ namespace Miyamasu {
 
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)] public static void RunTestsFromCode () {
 			var runnerSettings = Settings.LoadSettings();
-			if (!runnerSettings.runOnPlay) return;
+			if (!runnerSettings.runOnPlay) {
+				return;
+			}
+
+			// ready running.
+			
 			
 			var go = new GameObject("MiyamasuTestMainThreadRunner");
 			go.hideFlags = go.hideFlags | HideFlags.HideAndDontSave;
@@ -414,5 +419,16 @@ namespace Miyamasu {
 
 	[AttributeUsage(AttributeTargets.Method)] public class MTeardownAttribute : Attribute {
 		public MTeardownAttribute() {}
+	}
+
+	// new type.
+	[AttributeUsage(AttributeTargets.Method)] public class MSetup2Attribute : Attribute {
+		public MSetup2Attribute() {}
+	}
+	[AttributeUsage(AttributeTargets.Method)] public class MTeardown2Attribute : Attribute {
+		public MTeardown2Attribute() {}
+	}
+	[AttributeUsage(AttributeTargets.Method)] public class MTest2Attribute : Attribute {
+		public MTest2Attribute() {}
 	}
 }

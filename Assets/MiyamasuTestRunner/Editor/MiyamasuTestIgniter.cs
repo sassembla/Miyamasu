@@ -1,5 +1,10 @@
 using System;
 using System.Collections;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Security.Cryptography;
+using System.Text;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
@@ -12,6 +17,8 @@ namespace Miyamasu {
 		Player,
 		NUnit,
 	}
+
+	
 	
 	/*
 		Run tests when Initialize on load.
@@ -22,9 +29,14 @@ namespace Miyamasu {
 		Run Miyamasu on Batch  : 'sh run_miyamasu_tests.sh' or 'exec run_miyamasu_tests.bat'.
 	*/
     [InitializeOnLoad] public class MiyamasuTestIgniter {
+		const string GENERATED_ENTRYPOINT_FOLDER_PATH = "Assets/MiyamasuTestRunner/Runtime/Generated/";
+		const string GENERATED_ENTRYPOINT_CS_PATH = GENERATED_ENTRYPOINT_FOLDER_PATH + "GeneratedTestEntryPoints.cs";
+		
 		static MiyamasuTestIgniter () {
 			var runnerSettings = Settings.LoadSettings();
-			if (!runnerSettings.runOnCompiled) return;
+			if (!runnerSettings.runOnCompiled) {
+				return;
+			}
 			
 			/*
 				cloudbuild is not supported yet. it's hard to run asynchronous tests in NUnit.

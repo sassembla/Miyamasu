@@ -21,3 +21,5 @@ miyamasu_test.log
 
 .vscode/settings.json
 .DS_Store
+Assets/MiyamasuTestRunner/Runtime/Generated/GeneratedTestEntryPoints.cs
+Assets/MiyamasuTestRunner/Runtime/Generated/GeneratedTestEntryPoints.cs.meta

@@ -59,7 +59,7 @@ namespace Miyamasu {
 			settings.runOnCompiled = runOnCompiled;
 			settings.runOnPlay = runOnPlay;
 			Settings.WriteSettings(settings);
-			Debug.Log("Miyamasu setting saved.");
+			Debug.Log("Miyamasu setting updated.");
 
 			AssetDatabase.Refresh();
 		}
@@ -71,10 +71,14 @@ namespace Miyamasu {
 				target type instance.
 			*/
 			static Type targetType = typeof(EditorOption);
-		
+			private static Application.LogCallback staticLogAct;
+
 			[MenuItem("Window/Miyamasu Test Runner/Open")] public static void OpenSuekkoWindow () {
 				var window = GetWindow<MiyamasuWindow>();
 				window.titleContent = new GUIContent(targetType.ToString());
+				
+				Application.logMessageReceived += staticLogAct;
+
 				window.Setup(targetType);
 			}
 
@@ -172,11 +176,10 @@ namespace Miyamasu {
 						}
 					}
 				};
-				
-				Application.logMessageReceived += logAct;
-			}
 
-			
+				// switch log action.
+				staticLogAct = logAct;			
+			}
 
 
 			private class NameAndType {
