@@ -173,135 +173,135 @@ namespace Miyamasu {
         // public new void GreaterOrEqual(float arg1, float arg2, string message, params object[] args) {
         //     GreaterOrEqual(float arg1, float arg2, string message, params object[] args)
         // }
-        // public new void GreaterOrEqual(IComparable arg1, IComparable arg2) {
-        //     GreaterOrEqual(IComparable arg1, IComparable arg2)
-        // }
-        // public new void GreaterOrEqual(float arg1, float arg2) {
-        //     GreaterOrEqual(float arg1, float arg2)
-        // }
-        // public new void GreaterOrEqual(IComparable arg1, IComparable arg2, string message, params object[] args) {
-        //     GreaterOrEqual(IComparable arg1, IComparable arg2, string message, params object[] args)
-        // }
-        // public new void GreaterOrEqual(double arg1, double arg2) {
-        //     GreaterOrEqual(double arg1, double arg2)
-        // }
-        // public new void GreaterOrEqual(uint arg1, uint arg2) {
-        //     GreaterOrEqual(uint arg1, uint arg2)
-        // }
-        // public new void Ignore() {
-        //     Ignore()
-        // }
-        // public new void Ignore(string message) {
-        //     Ignore(string message)
-        // }
-        // public new void Ignore(string message, params object[] args) {
-        //     Ignore(string message, params object[] args)
-        // }
-        // public new void Inconclusive(string message, params object[] args) {
-        //     Inconclusive(string message, params object[] args)
-        // }
-        // public new void Inconclusive() {
-        //     Inconclusive()
-        // }
-        // public new void Inconclusive(string message) {
-        //     Inconclusive(string message)
-        // }
-        // public new void IsAssignableFrom<TExpected>(object actual) {
-        //     IsAssignableFrom<TExpected>(object actual)
-        // }
-        // public new void IsAssignableFrom<TExpected>(object actual, string message, params object[] args) {
-        //     IsAssignableFrom<TExpected>(object actual, string message, params object[] args)
-        // }
-        // public new void IsAssignableFrom(Type expected, object actual) {
-        //     IsAssignableFrom(Type expected, object actual)
-        // }
-        // public new void IsAssignableFrom(Type expected, object actual, string message, params object[] args) {
-        //     IsAssignableFrom(Type expected, object actual, string message, params object[] args)
-        // }
-        // public new void IsEmpty(IEnumerable collection) {
-        //     IsEmpty(IEnumerable collection)
-        // }
-        // public new void IsEmpty(IEnumerable collection, string message, params object[] args) {
-        //     IsEmpty(IEnumerable collection, string message, params object[] args)
-        // }
-        // public new void IsEmpty(string aString, string message, params object[] args) {
-        //     IsEmpty(string aString, string message, params object[] args)
-        // }
-        // public new void IsEmpty(string aString) {
-        //     IsEmpty(string aString)
-        // }
-        // public new void IsFalse(bool? condition, string message, params object[] args) {
-        //     IsFalse(bool? condition, string message, params object[] args)
-        // }
-        // public new void IsFalse(bool condition, string message, params object[] args) {
-        //     IsFalse(bool condition, string message, params object[] args)
-        // }
-        // public new void IsFalse(bool? condition) {
-        //     IsFalse(bool? condition)
-        // }
-        // public new void IsFalse(bool condition) {
-        //     IsFalse(bool condition)
-        // }
-        // public new void IsInstanceOf(Type expected, object actual, string message, params object[] args) {
-        //     IsInstanceOf(Type expected, object actual, string message, params object[] args)
-        // }
-        // public new void IsInstanceOf<TExpected>(object actual, string message, params object[] args) {
-        //     IsInstanceOf<TExpected>(object actual, string message, params object[] args)
-        // }
-        // public new void IsInstanceOf(Type expected, object actual) {
-        //     IsInstanceOf(Type expected, object actual)
-        // }
-        // public new void IsInstanceOf<TExpected>(object actual) {
-        //     IsInstanceOf<TExpected>(object actual)
-        // }
-        // public new void IsNaN(double aDouble, string message, params object[] args) {
-        //     IsNaN(double aDouble, string message, params object[] args)
-        // }
-        // public new void IsNaN(double aDouble) {
-        //     IsNaN(double aDouble)
-        // }
-        // public new void IsNaN(double? aDouble, string message, params object[] args) {
-        //     IsNaN(double? aDouble, string message, params object[] args)
-        // }
-        // public new void IsNaN(double? aDouble) {
-        //     IsNaN(double? aDouble)
-        // }
-        // public new void IsNotAssignableFrom(Type expected, object actual, string message, params object[] args) {
-        //     IsNotAssignableFrom(Type expected, object actual, string message, params object[] args)
-        // }
-        // public new void IsNotAssignableFrom(Type expected, object actual) {
-        //     IsNotAssignableFrom(Type expected, object actual)
-        // }
-        // public new void IsNotAssignableFrom<TExpected>(object actual, string message, params object[] args) {
-        //     IsNotAssignableFrom<TExpected>(object actual, string message, params object[] args)
-        // }
-        // public new void IsNotAssignableFrom<TExpected>(object actual) {
-        //     IsNotAssignableFrom<TExpected>(object actual)
-        // }
-        // public new void IsNotEmpty(IEnumerable collection, string message, params object[] args) {
-        //     IsNotEmpty(IEnumerable collection, string message, params object[] args)
-        // }
-        // public new void IsNotEmpty(string aString) {
-        //     IsNotEmpty(string aString)
-        // }
-        // public new void IsNotEmpty(IEnumerable collection) {
-        //     IsNotEmpty(IEnumerable collection)
-        // }
-        // public new void IsNotEmpty(string aString, string message, params object[] args) {
-        //     IsNotEmpty(string aString, string message, params object[] args)
-        // }
-        // public new void IsNotInstanceOf(Type expected, object actual, string message, params object[] args) {
-        //     IsNotInstanceOf(Type expected, object actual, string message, params object[] args)
-        // }
-        // public new void IsNotInstanceOf(Type expected, object actual) {
-        //     IsNotInstanceOf(Type expected, object actual)
-        // }
-        // public new void IsNotInstanceOf<TExpected>(object actual, string message, params object[] args) {
-        //     IsNotInstanceOf<TExpected>(object actual, string message, params object[] args)
-        // }
-        // public new void IsNotInstanceOf<TExpected>(object actual) {
-        //     IsNotInstanceOf<TExpected>(object actual)
-        // }
+        public new void GreaterOrEqual(IComparable arg1, IComparable arg2) {
+            rec.MarkAsAssertionFailed(() => GreaterOrEqual(arg1, arg2));
+        }
+        public new void GreaterOrEqual(float arg1, float arg2) {
+            rec.MarkAsAssertionFailed(() => GreaterOrEqual(arg1, arg2));
+        }
+        public new void GreaterOrEqual(IComparable arg1, IComparable arg2, string message, params object[] args) {
+            rec.MarkAsAssertionFailed(() => GreaterOrEqual(arg1, arg2, message, args));
+        }
+        public new void GreaterOrEqual(double arg1, double arg2) {
+            rec.MarkAsAssertionFailed(() => GreaterOrEqual(arg1, arg2));
+        }
+        public new void GreaterOrEqual(uint arg1, uint arg2) {
+            rec.MarkAsAssertionFailed(() => GreaterOrEqual(arg1, arg2));
+        }
+        public new void Ignore() {
+            rec.MarkAsAssertionFailed(() => Ignore());
+        }
+        public new void Ignore(string message) {
+            rec.MarkAsAssertionFailed(() => Ignore(message));
+        }
+        public new void Ignore(string message, params object[] args) {
+            rec.MarkAsAssertionFailed(() => Ignore(message, args));
+        }
+        public new void Inconclusive(string message, params object[] args) {
+            rec.MarkAsAssertionFailed(() => Inconclusive(message, args));
+        }
+        public new void Inconclusive() {
+            rec.MarkAsAssertionFailed(() => Inconclusive());
+        }
+        public new void Inconclusive(string message) {
+            rec.MarkAsAssertionFailed(() => Inconclusive(message));
+        }
+        public new void IsAssignableFrom<TExpected>(object actual) {
+            rec.MarkAsAssertionFailed(() => IsAssignableFrom<TExpected>(actual));
+        }
+        public new void IsAssignableFrom<TExpected>(object actual, string message, params object[] args) {
+            rec.MarkAsAssertionFailed(() => IsAssignableFrom<TExpected>(actual, message, args));
+        }
+        public new void IsAssignableFrom(Type expected, object actual) {
+            rec.MarkAsAssertionFailed(() => IsAssignableFrom(expected, actual));
+        }
+        public new void IsAssignableFrom(Type expected, object actual, string message, params object[] args) {
+            rec.MarkAsAssertionFailed(() => IsAssignableFrom(expected, actual, message, args));
+        }
+        public new void IsEmpty(IEnumerable collection) {
+            rec.MarkAsAssertionFailed(() => IsEmpty(collection));
+        }
+        public new void IsEmpty(IEnumerable collection, string message, params object[] args) {
+            rec.MarkAsAssertionFailed(() => IsEmpty(collection, message, args));
+        }
+        public new void IsEmpty(string aString, string message, params object[] args) {
+            rec.MarkAsAssertionFailed(() => IsEmpty(aString, message, args));
+        }
+        public new void IsEmpty(string aString) {
+            rec.MarkAsAssertionFailed(() => IsEmpty(aString));
+        }
+        public new void IsFalse(bool? condition, string message, params object[] args) {
+            rec.MarkAsAssertionFailed(() => IsFalse(condition, message, args));
+        }
+        public new void IsFalse(bool condition, string message, params object[] args) {
+            rec.MarkAsAssertionFailed(() => IsFalse(condition, message, args));
+        }
+        public new void IsFalse(bool? condition) {
+            rec.MarkAsAssertionFailed(() => IsFalse(condition));
+        }
+        public new void IsFalse(bool condition) {
+            rec.MarkAsAssertionFailed(() => IsFalse(condition));
+        }
+        public new void IsInstanceOf(Type expected, object actual, string message, params object[] args) {
+            rec.MarkAsAssertionFailed(() => IsInstanceOf(expected, actual, message, args));
+        }
+        public new void IsInstanceOf<TExpected>(object actual, string message, params object[] args) {
+            rec.MarkAsAssertionFailed(() => IsInstanceOf<TExpected>(actual, message, args));
+        }
+        public new void IsInstanceOf(Type expected, object actual) {
+            rec.MarkAsAssertionFailed(() => IsInstanceOf(expected, actual));
+        }
+        public new void IsInstanceOf<TExpected>(object actual) {
+            rec.MarkAsAssertionFailed(() => IsInstanceOf<TExpected>(actual));
+        }
+        public new void IsNaN(double aDouble, string message, params object[] args) {
+            rec.MarkAsAssertionFailed(() => IsNaN(aDouble, message, args));
+        }
+        public new void IsNaN(double aDouble) {
+            rec.MarkAsAssertionFailed(() => IsNaN(aDouble));
+        }
+        public new void IsNaN(double? aDouble, string message, params object[] args) {
+            rec.MarkAsAssertionFailed(() => IsNaN(aDouble, message, args));
+        }
+        public new void IsNaN(double? aDouble) {
+            rec.MarkAsAssertionFailed(() => IsNaN(aDouble));
+        }
+        public new void IsNotAssignableFrom(Type expected, object actual, string message, params object[] args) {
+            rec.MarkAsAssertionFailed(() => IsNotAssignableFrom(expected, actual, message, args));
+        }
+        public new void IsNotAssignableFrom(Type expected, object actual) {
+            rec.MarkAsAssertionFailed(() => IsNotAssignableFrom(expected, actual));
+        }
+        public new void IsNotAssignableFrom<TExpected>(object actual, string message, params object[] args) {
+            rec.MarkAsAssertionFailed(() => IsNotAssignableFrom<TExpected>(actual, message, args));
+        }
+        public new void IsNotAssignableFrom<TExpected>(object actual) {
+            rec.MarkAsAssertionFailed(() => IsNotAssignableFrom<TExpected>(actual));
+        }
+        public new void IsNotEmpty(IEnumerable collection, string message, params object[] args) {
+            rec.MarkAsAssertionFailed(() => Assert.IsNotEmpty(collection, message, args));
+        }
+        public new void IsNotEmpty(string aString) {
+            rec.MarkAsAssertionFailed(() => Assert.IsNotEmpty(aString));
+        }
+        public new void IsNotEmpty(IEnumerable collection) {
+            rec.MarkAsAssertionFailed(() => Assert.IsNotEmpty(collection));
+        }
+        public new void IsNotEmpty(string aString, string message, params object[] args) {
+            rec.MarkAsAssertionFailed(() => Assert.IsNotEmpty(aString, message, args));
+        }
+        public new void IsNotInstanceOf(Type expected, object actual, string message, params object[] args) {
+            rec.MarkAsAssertionFailed(() => Assert.IsNotInstanceOf(expected, actual, message, args));
+        }
+        public new void IsNotInstanceOf(Type expected, object actual) {
+            rec.MarkAsAssertionFailed(() => Assert.IsNotInstanceOf(expected, actual));
+        }
+        public new void IsNotInstanceOf<TExpected>(object actual, string message, params object[] args) {
+            rec.MarkAsAssertionFailed(() => Assert.IsNotInstanceOf<TExpected>(actual, message, args));
+        }
+        public new void IsNotInstanceOf<TExpected>(object actual) {
+            rec.MarkAsAssertionFailed(() => Assert.IsNotInstanceOf<TExpected>(actual));
+        }
         public new void IsNotNull(object anObject, string message, params object[] args) {
             rec.MarkAsAssertionFailed(() => Assert.IsNotNull(anObject, message, args));
         }
