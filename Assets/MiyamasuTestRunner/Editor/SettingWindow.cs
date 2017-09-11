@@ -37,20 +37,6 @@ namespace Miyamasu {
 		// 	Menu.SetChecked(menuPath, settings.runOnPlay);
 		// }
 
-		[MenuItem("Window/Miyamasu Test Runner/Update UnityPackage", false, 21)] public static void UnityPackage () {
-			var assetPaths = new List<string>();
-			var dirPaths = Directory.GetDirectories("Assets/MiyamasuTestRunner");
-			
-			foreach (var dir in dirPaths) {
-				var files = Directory.GetFiles(dir);
-				foreach (var file in files) {
-					assetPaths.Add(file);
-				}
-			}
-			
-			AssetDatabase.ExportPackage(assetPaths.ToArray(), "MiyamasuTestRunner.unitypackage", ExportPackageOptions.IncludeDependencies);
-		}
-
 		public void Save () {
 			var settings = Settings.LoadSettings();
 			settings.runOnPlay = runOnPlay;
