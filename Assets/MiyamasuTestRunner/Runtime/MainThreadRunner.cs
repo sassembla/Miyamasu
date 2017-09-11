@@ -18,6 +18,7 @@ namespace Miyamasu {
 			yield return new WaitForSeconds(1);
 
 			if (Miyamasu.Recorder.isRunning) {
+				Destroy(this);
 				yield break;
 			}
 
@@ -42,7 +43,20 @@ namespace Miyamasu {
 			while (index < iEnumGens.Length) {
 				yield return iEnumGens[index++]();
 			}
-			Debug.LogError("all tests passed.");
+
+			Debug.Log("maybe all tests passed.");
 		}
+
+		/**
+			this method will be called from jumber lib via SendMessage.
+		 */
+		public void AddLog (object[] logSource) {
+			var type = (int)logSource[0];
+			var message = logSource[1] as string;
+
+			// 受け取ることができたので、viewに足す。
+		}
+
+
 	}
 }

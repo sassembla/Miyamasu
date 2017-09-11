@@ -5,22 +5,26 @@ using NUnit.Framework;
 using NUnit.Framework.Constraints;
 using UnityEngine;
 
+/**
+    NUnitをラップしつつなおかつログ出力を行うラップ部。
+    coroutineからの復帰が可能な形でWaitUntilが実装されている。
+ */
 namespace Miyamasu {
     public class MiyamasuTestRunner2 : Assert {
-        public Recorder rep;
+        public Recorder rec;
 
         public _WaitUntil WaitUntil (Func<bool> assert, Action onTimeout, double sec=5.0) {
-            return new _WaitUntil(assert, onTimeout, sec, rep);
+            return new _WaitUntil(assert, onTimeout, sec, rec);
         }
 
         public new void AreEqual(object expected, object actual) {
-            rep.MarkAsAssertionFailed(() => Assert.AreEqual(expected, actual));
+            rec.MarkAsAssertionFailed(() => Assert.AreEqual(expected, actual));
         }
         public new void AreEqual(object expected, object actual, string message, params object[] args) {
-            rep.MarkAsAssertionFailed(() => Assert.AreEqual(expected, actual, message, args));
+            rec.MarkAsAssertionFailed(() => Assert.AreEqual(expected, actual, message, args));
         }
         public new void AreEqual(double expected, double? actual, double delta) {
-            rep.MarkAsAssertionFailed(() => Assert.AreEqual(expected, actual, delta));
+            rec.MarkAsAssertionFailed(() => Assert.AreEqual(expected, actual, delta));
         }
         // public new void AreEqual(double expected, double? actual, double delta, string message, params object[] args) {
         //     AreEqual(double expected, double? actual, double delta, string message, params object[] args)
@@ -299,10 +303,10 @@ namespace Miyamasu {
         //     IsNotInstanceOf<TExpected>(object actual)
         // }
         public new void IsNotNull(object anObject, string message, params object[] args) {
-            rep.MarkAsAssertionFailed(() => Assert.IsNotNull(anObject, message, args));
+            rec.MarkAsAssertionFailed(() => Assert.IsNotNull(anObject, message, args));
         }
         public new void IsNotNull(object anObject) {
-            rep.MarkAsAssertionFailed(() => Assert.IsNotNull(anObject));
+            rec.MarkAsAssertionFailed(() => Assert.IsNotNull(anObject));
         }
         // public new void IsNull(object anObject, string message, params object[] args) {
         //     IsNull(object anObject, string message, params object[] args)
@@ -569,103 +573,103 @@ namespace Miyamasu {
         //     ReferenceEquals(object a, object b)
         // }
         public new void That(TestDelegate code, IResolveConstraint constraint) {
-            rep.MarkAsAssertionFailed(() => Assert.That(code, constraint));
+            rec.MarkAsAssertionFailed(() => Assert.That(code, constraint));
         }
         public new void That(bool condition, Func<string> getExceptionMessage) {
-            rep.MarkAsAssertionFailed(() => Assert.That(condition, getExceptionMessage));
+            rec.MarkAsAssertionFailed(() => Assert.That(condition, getExceptionMessage));
         }
         public new void That(bool condition) {
-            rep.MarkAsAssertionFailed(() => Assert.That(condition));
+            rec.MarkAsAssertionFailed(() => Assert.That(condition));
         }
         public new void That<TActual>(TActual actual, IResolveConstraint expression, Func<string> getExceptionMessage) {
-            rep.MarkAsAssertionFailed(() => Assert.That<TActual>(actual, expression, getExceptionMessage));
+            rec.MarkAsAssertionFailed(() => Assert.That<TActual>(actual, expression, getExceptionMessage));
         }
         public new void That<TActual>(TActual actual, IResolveConstraint expression, string message, params object[] args) {
-            rep.MarkAsAssertionFailed(() => Assert.That<TActual>(actual, expression, message, args));
+            rec.MarkAsAssertionFailed(() => Assert.That<TActual>(actual, expression, message, args));
         }
         public new void That<TActual>(TActual actual, IResolveConstraint expression) {
-            rep.MarkAsAssertionFailed(() => Assert.That<TActual>(actual, expression));
+            rec.MarkAsAssertionFailed(() => Assert.That<TActual>(actual, expression));
         }
         public new void That(TestDelegate code, IResolveConstraint constraint, Func<string> getExceptionMessage) {
-            rep.MarkAsAssertionFailed(() => Assert.That(code, constraint, getExceptionMessage));
+            rec.MarkAsAssertionFailed(() => Assert.That(code, constraint, getExceptionMessage));
         }
         public new void That(Func<bool> condition) {
-            rep.MarkAsAssertionFailed(() => Assert.That(condition));
+            rec.MarkAsAssertionFailed(() => Assert.That(condition));
         }
         public new void That(TestDelegate code, IResolveConstraint constraint, string message, params object[] args) {
-            rep.MarkAsAssertionFailed(() => Assert.That(code, constraint, message, args));
+            rec.MarkAsAssertionFailed(() => Assert.That(code, constraint, message, args));
         }
         public new void That(Func<bool> condition, Func<string> getExceptionMessage) {
-            rep.MarkAsAssertionFailed(() => Assert.That(condition, getExceptionMessage));
+            rec.MarkAsAssertionFailed(() => Assert.That(condition, getExceptionMessage));
         }
         public new void That<TActual>(ActualValueDelegate<TActual> del, IResolveConstraint expr) {
-            rep.MarkAsAssertionFailed(() => Assert.That<TActual>(del, expr));
+            rec.MarkAsAssertionFailed(() => Assert.That<TActual>(del, expr));
         }
         public new void That<TActual>(ActualValueDelegate<TActual> del, IResolveConstraint expr, string message, params object[] args) {
-            rep.MarkAsAssertionFailed(() => Assert.That<TActual>(del, expr, message, args));
+            rec.MarkAsAssertionFailed(() => Assert.That<TActual>(del, expr, message, args));
         }
         public new void That<TActual>(ActualValueDelegate<TActual> del, IResolveConstraint expr, Func<string> getExceptionMessage) {
-            rep.MarkAsAssertionFailed(() => Assert.That(del, expr, getExceptionMessage));
+            rec.MarkAsAssertionFailed(() => Assert.That(del, expr, getExceptionMessage));
         }
         public new void That(bool condition, string message, params object[] args) {
-            rep.MarkAsAssertionFailed(() => Assert.That(condition, message, args));
+            rec.MarkAsAssertionFailed(() => Assert.That(condition, message, args));
         }
         public new void That(Func<bool> condition, string message, params object[] args) {
-            rep.MarkAsAssertionFailed(() => Assert.That(condition, message, args));
+            rec.MarkAsAssertionFailed(() => Assert.That(condition, message, args));
         }
         public new void True(bool? condition) {
-            rep.MarkAsAssertionFailed(() => Assert.True(condition));
+            rec.MarkAsAssertionFailed(() => Assert.True(condition));
         }
         public new void True(bool condition, string message, params object[] args) {
-            rep.MarkAsAssertionFailed(() => Assert.True(condition, message, args));
+            rec.MarkAsAssertionFailed(() => Assert.True(condition, message, args));
         }
         public new void True(bool? condition, string message, params object[] args) {
-            rep.MarkAsAssertionFailed(() => Assert.True(condition, message, args));
+            rec.MarkAsAssertionFailed(() => Assert.True(condition, message, args));
         }
         public new void True(bool condition) {
-            rep.MarkAsAssertionFailed(() => Assert.True(condition));
+            rec.MarkAsAssertionFailed(() => Assert.True(condition));
         }
         public new void Zero(int actual) {
-            rep.MarkAsAssertionFailed(() => Assert.Zero(actual));
+            rec.MarkAsAssertionFailed(() => Assert.Zero(actual));
         }
         public new void Zero(int actual, string message, params object[] args) {
-            rep.MarkAsAssertionFailed(() => Assert.Zero(actual, message, args));
+            rec.MarkAsAssertionFailed(() => Assert.Zero(actual, message, args));
         }
         public new void Zero(uint actual) {
-            rep.MarkAsAssertionFailed(() => Assert.Zero(actual));
+            rec.MarkAsAssertionFailed(() => Assert.Zero(actual));
         }
         public new void Zero(uint actual, string message, params object[] args) {
-            rep.MarkAsAssertionFailed(() => Assert.Zero(actual, message, args));
+            rec.MarkAsAssertionFailed(() => Assert.Zero(actual, message, args));
         }
         public new void Zero(long actual) {
-            rep.MarkAsAssertionFailed(() => Assert.Zero(actual));
+            rec.MarkAsAssertionFailed(() => Assert.Zero(actual));
         }
         public new void Zero(ulong actual) {
-            rep.MarkAsAssertionFailed(() => Assert.Zero(actual));
+            rec.MarkAsAssertionFailed(() => Assert.Zero(actual));
         }
         public new void Zero(ulong actual, string message, params object[] args) {
-            rep.MarkAsAssertionFailed(() => Assert.Zero(actual, message, args));
+            rec.MarkAsAssertionFailed(() => Assert.Zero(actual, message, args));
         }
         public new void Zero(decimal actual) {
-            rep.MarkAsAssertionFailed(() => Assert.Zero(actual));
+            rec.MarkAsAssertionFailed(() => Assert.Zero(actual));
         }
         public new void Zero(decimal actual, string message, params object[] args) {
-            rep.MarkAsAssertionFailed(() => Assert.Zero(actual, message, args));
+            rec.MarkAsAssertionFailed(() => Assert.Zero(actual, message, args));
         }
         public new void Zero(double actual) {
-            rep.MarkAsAssertionFailed(() => Assert.Zero(actual));
+            rec.MarkAsAssertionFailed(() => Assert.Zero(actual));
         }
         public new void Zero(double actual, string message, params object[] args) {
-            rep.MarkAsAssertionFailed(() => Assert.Zero(actual, message, args));
+            rec.MarkAsAssertionFailed(() => Assert.Zero(actual, message, args));
         }
         public new void Zero(float actual) {
-            rep.MarkAsAssertionFailed(() => Assert.Zero(actual));
+            rec.MarkAsAssertionFailed(() => Assert.Zero(actual));
         }
         public new void Zero(long actual, string message, params object[] args) {
-            rep.MarkAsAssertionFailed(() => Assert.Zero(actual, message, args));
+            rec.MarkAsAssertionFailed(() => Assert.Zero(actual, message, args));
         }
         public new void Zero(float actual, string message, params object[] args) {
-            rep.MarkAsAssertionFailed(() => Assert.Zero(actual, message, args));
+            rec.MarkAsAssertionFailed(() => Assert.Zero(actual, message, args));
         }
         
         public class _WaitUntil : CustomYieldInstruction {
@@ -675,11 +679,11 @@ namespace Miyamasu {
 
             private readonly IEnumerator t;
 
-            public _WaitUntil (Func<bool> assert, Action onTimeout, double sec, Recorder rep) {
+            public _WaitUntil (Func<bool> assert, Action onTimeout, double sec, Recorder rec) {
                 this.assert = assert;
                 this.onTimeout = onTimeout;
                 this.timelimit = (DateTime.Now + TimeSpan.FromSeconds(sec)).Ticks;
-                this.t = _WaitCor(rep);
+                this.t = _WaitCor(rec);
             }
             
             public override bool keepWaiting {
@@ -688,7 +692,7 @@ namespace Miyamasu {
                 }
             }
 
-            private IEnumerator _WaitCor (Recorder rep) {
+            private IEnumerator _WaitCor (Recorder rec) {
                 while (true) {
                     if (assert()) {
                         // done.
@@ -699,7 +703,7 @@ namespace Miyamasu {
                         try {
                             onTimeout();
                         } catch (Exception e) {
-                            rep.MarkAsTimeout(e);
+                            rec.MarkAsTimeout(e);
                             throw;
                         }
 

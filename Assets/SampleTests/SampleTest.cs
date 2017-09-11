@@ -92,6 +92,7 @@ public class MiyamasuTestRunnerSample2 : MiyamasuTestRunner2 {
 
 	[MTest2] public IEnumerator Other () {
 		Debug.Log("before4");
+		
 		yield return null;
 		AreEqual("", 1);
 		yield return null;

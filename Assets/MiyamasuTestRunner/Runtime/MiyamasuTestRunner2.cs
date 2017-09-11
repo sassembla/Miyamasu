@@ -54,14 +54,14 @@ public class " + klass.className + @"_Miyamasu {";
                 */
                 foreach (var methodName in klass.methodNames) {
                     classDesc += methodDesc + methodName + @"() {
-        var rep = new Miyamasu.Recorder(" + "\"" + klass.className + "\", \"" + methodName + "\"" + @");
+        var rec = new Miyamasu.Recorder(" + "\"" + klass.className + "\", \"" + methodName + "\"" + @");
         var instance = new " + klass.className + @"();
-        instance.rep = rep;
+        instance.rec = rec;
 
         " + SetupDesc(klass.setupMethodName) + @"
         
         yield return instance." + methodName + @"();
-        rep.MarkAsPassed();
+        rec.MarkAsPassed();
 
         " + TeardownDesc(klass.teardownMethodName) + @"
     }";
@@ -83,7 +83,7 @@ public class " + klass.className + @"_Miyamasu {";
         try {
             instance." + setupMethodName + @"();
         } catch (Exception e) {
-            rep.SetupFailed(e);
+            rec.SetupFailed(e);
             throw;
         }";
         }
@@ -96,7 +96,7 @@ public class " + klass.className + @"_Miyamasu {";
         try {
             instance." + teardownMethodName + @"();
         } catch (Exception e) {
-            rep.TeardownFailed(e);
+            rec.TeardownFailed(e);
             throw;
         }";
         }
