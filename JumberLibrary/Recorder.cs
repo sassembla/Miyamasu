@@ -127,7 +127,9 @@ namespace Miyamasu {
                 }
             }
             
-            mainThreadRunner.SendMessage("AddLog", new object[]{(int)type, message});
+            if (mainThreadRunner != null) {
+                mainThreadRunner.SendMessage("AddLog", new object[]{(int)type, message});
+            }
         }
     }
  }
