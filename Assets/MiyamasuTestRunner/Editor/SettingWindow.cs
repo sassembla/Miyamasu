@@ -8,11 +8,10 @@ using UnityEngine;
 
 namespace Miyamasu {
 
-	public class EditorOption {
-		public bool runOnCompiled;
+	public class SettingWindow {
 		public bool runOnPlay;
 
-		public EditorOption () {
+		public SettingWindow () {
 			var settings = Settings.LoadSettings();
 			runOnPlay = settings.runOnPlay;
 		}
@@ -67,10 +66,10 @@ namespace Miyamasu {
 			/*
 				target type instance.
 			*/
-			static Type targetType = typeof(EditorOption);
+			static Type targetType = typeof(SettingWindow);
 			private static Application.LogCallback staticLogAct;
 
-			[MenuItem("Window/Miyamasu Test Runner/Open")] public static void OpenSuekkoWindow () {
+			[MenuItem("Window/Miyamasu Test Runner/Open Settings")] public static void OpenSuekkoWindow () {
 				var window = GetWindow<MiyamasuWindow>();
 				window.titleContent = new GUIContent(targetType.ToString());
 				

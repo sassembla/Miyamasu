@@ -11,14 +11,14 @@ using UnityEngine;
 */
 public class MiyamasuTestRunnerSample : MiyamasuTestRunner2 {
 	[MSetup2] public void Setup () {
-		Debug.Log("setup!");// 他のテストでエラーが出ると何故か呼ばれる。
+		Debug.Log("setup!");
 	}
 
 	[MTeardown2] public void Teardown () {
 		Debug.Log("Teardown!");
 	}
 
-	[MTest2] public IEnumerator Some () {
+	[MTest2] public IEnumerator SomeA () {
 		Debug.Log("before");
 		
 		AreEqual("", "");

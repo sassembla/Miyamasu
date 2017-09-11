@@ -111,7 +111,7 @@ namespace Miyamasu {
 				}
 			}
 			
-			var targetClassDesc = Runner2.GenerateRuntimeTests();
+			var targetClassDesc = Miyamasu2UnityTestConverter.GenerateRuntimeTests();
 			
 			byte[] newHash;
             using (MD5 md5 = MD5.Create()) {

@@ -7,7 +7,7 @@ using UnityEngine;
 using NUnit.Framework;
 
 namespace Miyamasu {
-    public class Runner2 {
+    public class Miyamasu2UnityTestConverter {
 		public static string GenerateRuntimeTests() {
             var targetTypes = Assembly.GetExecutingAssembly().GetTypes().Where(t => typeof(MiyamasuTestRunner2).IsAssignableFrom(t)).ToArray();
             var classDescs = new List<TestEntryClass>();

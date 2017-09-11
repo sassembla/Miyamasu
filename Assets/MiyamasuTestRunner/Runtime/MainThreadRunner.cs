@@ -8,6 +8,7 @@ namespace Miyamasu {
 	public class MainThreadRunner : MonoBehaviour {
 		private int index = 0;
 		private object lockObj = new object();
+		private bool started;
 		IEnumerator Start () {
 			while (iEnumGens == null) {
 				// wait to set enumGens;
@@ -16,17 +17,18 @@ namespace Miyamasu {
 			
 			// wait for check UnityTest is running or not.
 			yield return new WaitForSeconds(1);
-
+			
 			if (Miyamasu.Recorder.isRunning) {
 				Destroy(this);
 				yield break;
 			}
 
+			started = true;
 			yield return ContCor();
 		}
 
 		void Update () {
-			if (Recorder.isStoppedByFail) {
+			if (started && Recorder.isStoppedByFail) {
 				Recorder.isStoppedByFail = false;
 
 				// continue test.
