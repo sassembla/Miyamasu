@@ -11,7 +11,7 @@ using UnityEngine;
 */
 public class MiyamasuTestRunnerSample : MiyamasuTestRunner2 {
 	[MSetup2] public void Setup () {
-		Debug.Log("setup!");
+		Debug.Log("setup!");// 他のテストでエラーが出ると何故か呼ばれる。
 	}
 
 	[MTeardown2] public void Teardown () {
@@ -65,6 +65,8 @@ public class MiyamasuTestRunnerSample2 : MiyamasuTestRunner2 {
 			1
 		);
 
+		// エラーの時だけなぜか遠く離れたsetupとteardownが呼ばれるのなんで
+		yield return null;
 		Debug.Log("after2");
 	}
 

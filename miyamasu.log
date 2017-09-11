@@ -27,3 +27,23 @@ AssertionFailed:class:MiyamasuTestRunnerSample2 method:Other
   at NUnit.Framework.Assert.AreEqual (System.Object expected, System.Object actual) [0x00000] in <filename unknown>:0 
   at Miyamasu.MiyamasuTestRunner2+<AreEqual>c__AnonStorey0.<>m__0 () [0x00000] in <filename unknown>:0 
   at Miyamasu.Recorder.MarkAsAssertionFailed (System.Action act) [0x00000] in <filename unknown>:0 
+Passed:class:MiyamasuTestRunnerSample method:Some
+Passed:class:MiyamasuTestRunnerSample2 method:Else
+AssertionFailed:class:MiyamasuTestRunnerSample2 method:Other
+  NUnit.Framework.AssertionException:   Expected: <string.Empty>
+  But was:  1
+
+  at NUnit.Framework.Assert.That[Object] (System.Object actual, IResolveConstraint expression, System.String message, System.Object[] args) [0x00000] in <filename unknown>:0 
+  at NUnit.Framework.Assert.AreEqual (System.Object expected, System.Object actual) [0x00000] in <filename unknown>:0 
+  at Miyamasu.MiyamasuTestRunner2+<AreEqual>c__AnonStorey0.<>m__0 () [0x00000] in <filename unknown>:0 
+  at Miyamasu.Recorder.MarkAsAssertionFailed (System.Action act) [0x00000] in <filename unknown>:0 
+Passed:class:MiyamasuTestRunnerSample method:Some
+FailedByTimeout:class:MiyamasuTestRunnerSample2 method:Some
+  System.TimeoutException: not yet.
+  at MiyamasuTestRunnerSample2+<Some>c__Iterator0.<>m__0 () [0x00006] in /Users/passepied/Desktop/miyamasu/Assets/SampleTests/SampleTest.cs:64 
+  at Miyamasu.MiyamasuTestRunner2+_WaitUntil+<_WaitCor>c__Iterator0.MoveNext () [0x00000] in <filename unknown>:0 
+FailedByTimeout:class:MiyamasuTestRunnerSample2 method:Some
+  System.TimeoutException: not yet.
+  at MiyamasuTestRunnerSample2+<Some>c__Iterator0.<>m__0 () [0x00006] in /Users/passepied/Desktop/miyamasu/Assets/SampleTests/SampleTest.cs:64 
+  at Miyamasu.MiyamasuTestRunner2+_WaitUntil+<_WaitCor>c__Iterator0.MoveNext () [0x00000] in <filename unknown>:0 
+Passed:class:MiyamasuTestRunnerSample2 method:Some
