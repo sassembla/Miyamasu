@@ -3,12 +3,19 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
+using UUebView;
 
 namespace Miyamasu {
-	public class MainThreadRunner : MonoBehaviour {
+	public class MainThreadRunner : MonoBehaviour, IUUebViewEventHandler {
 		private int index = 0;
-		private object lockObj = new object();
 		private bool started;
+
+		private string htmlContent = @"
+<h1>Miyamasu Runtime Console</h1>
+<p>
+	ddd<br>
+</p>";
+
 		IEnumerator Start () {
 			while (iEnumGens == null) {
 				// wait to set enumGens;
@@ -22,6 +29,28 @@ namespace Miyamasu {
 				Destroy(this);
 				yield break;
 			}
+
+			var canvasCor = Resources.LoadAsync<GameObject>("Prefabs/MiyamasuCanvas");
+
+			while (!canvasCor.isDone) {
+				yield return null;
+			}
+
+			var canvasPrefab = canvasCor.asset as GameObject;
+			var canvas = Instantiate(canvasPrefab);
+
+			var scrollViewRectCandidates = canvas.transform.GetComponentsInChildren<RectTransform>();
+			GameObject attachTargetView = null;
+			foreach (var rect in scrollViewRectCandidates) {
+				if (rect.name == "Content") {
+					attachTargetView = rect.gameObject;
+					break;
+				}
+			}
+
+			var view = UUebViewComponent.GenerateSingleViewFromHTML(this.gameObject, htmlContent, new Vector2(600,100));			
+			view.transform.SetParent(attachTargetView.transform);
+
 
 			started = true;
 			yield return ContCor();
@@ -59,6 +88,40 @@ namespace Miyamasu {
 			// 受け取ることができたので、viewに足す。
 		}
 
+        void IUUebViewEventHandler.OnLoadStarted()
+        {
+            // throw new NotImplementedException();
+        }
 
-	}
+        void IUUebViewEventHandler.OnProgress(double progress)
+        {
+            // throw new NotImplementedException();
+        }
+
+        void IUUebViewEventHandler.OnLoaded()
+        {
+			Debug.LogWarning("load!");
+            // throw new NotImplementedException();
+        }
+
+        void IUUebViewEventHandler.OnUpdated()
+        {
+            // throw new NotImplementedException();
+        }
+
+        void IUUebViewEventHandler.OnLoadFailed(ContentType type, int code, string reason)
+        {
+			Debug.LogError("loadFailed:" + type + " code:" + code + " reason:" + reason);
+        }
+
+        void IUUebViewEventHandler.OnElementTapped(ContentType type, GameObject element, string param, string id)
+        {
+            // throw new NotImplementedException();
+        }
+
+        void IUUebViewEventHandler.OnElementLongTapped(ContentType type, string param, string id)
+        {
+            // throw new NotImplementedException();
+        }
+    }
 }
