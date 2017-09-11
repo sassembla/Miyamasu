@@ -10,17 +10,27 @@ namespace Miyamasu {
 		private object lockObj = new object();
 		IEnumerator Start () {
 			while (iEnumGens == null) {
+				// wait to set enumGens;
 				yield return null;
 			}
 			
-			// wait for check isTestRunning or not.
+			// wait for check UnityTest is running or not.
 			yield return new WaitForSeconds(1);
-			
-			if (false) {
+
+			if (Miyamasu.Recorder.isRunning) {
 				yield break;
 			}
 
-			yield return ContCor(iEnumGens);
+			yield return ContCor();
+		}
+
+		void Update () {
+			if (Recorder.isStoppedByFail) {
+				Recorder.isStoppedByFail = false;
+
+				// continue test.
+				StartCoroutine(ContCor());
+			}
 		}
 		
 		private Func<IEnumerator>[] iEnumGens;
@@ -28,17 +38,11 @@ namespace Miyamasu {
 			this.iEnumGens = iEnumGens;
         }
 
-		private IEnumerator ContCor (Func<IEnumerator>[] iEnumGens) {
-			Back:
-			Debug.LogWarning("fmm-1 index:" + index);
-			if (index == iEnumGens.Length) {
-				yield break;
+		private IEnumerator ContCor () {
+			while (index < iEnumGens.Length) {
+				yield return iEnumGens[index++]();
 			}
-
-			yield return iEnumGens[index]();
-			index = index + 1;
-			Debug.LogWarning("fmm");
-			goto Back;
+			Debug.LogError("all tests passed.");
 		}
 	}
 }

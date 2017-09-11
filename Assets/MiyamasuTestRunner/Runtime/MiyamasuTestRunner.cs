@@ -19,7 +19,6 @@ namespace Miyamasu {
 			run on app playing handler.
 		 */
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)] public static void RunTestsFromCode () {
-			Debug.LogError("fmm " + Application.isPlaying);
 			var runnerSettings = Settings.LoadSettings();
 			if (!runnerSettings.runOnPlay) {
 				// do nothing.
@@ -58,7 +57,6 @@ namespace Miyamasu {
 					var ss = new List<Func<IEnumerator>>();
 					foreach (var method in t.Value) {
 						Func<IEnumerator> s = () => {
-							Debug.LogError("-2");
 							return MethodCoroutines(t.Key, method);
 						};
 						ss.Add(s);
@@ -71,10 +69,8 @@ namespace Miyamasu {
 		}
 
 		private IEnumerator MethodCoroutines (Type type, MethodInfo methodInfo) {
-			Debug.LogError("良い感じにここまできてる -1");
 			var instance = Activator.CreateInstance(type);
 			var cor = methodInfo.Invoke(instance, null) as IEnumerator;
-			Debug.LogError("良い感じにここまできてる");
 			yield return cor;
 		}
 		

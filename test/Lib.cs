@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Miyamasu {
     public class MiyamasuTestRunner2 : Assert {
-        public Reporter rep;
+        public Recorder rep;
 
         public _WaitUntil WaitUntil (Func<bool> assert, Action onTimeout, double sec=5.0) {
             return new _WaitUntil(assert, onTimeout, sec, rep);
@@ -675,7 +675,7 @@ namespace Miyamasu {
 
             private readonly IEnumerator t;
 
-            public _WaitUntil (Func<bool> assert, Action onTimeout, double sec, Reporter rep) {
+            public _WaitUntil (Func<bool> assert, Action onTimeout, double sec, Recorder rep) {
                 this.assert = assert;
                 this.onTimeout = onTimeout;
                 this.timelimit = (DateTime.Now + TimeSpan.FromSeconds(sec)).Ticks;
@@ -688,7 +688,7 @@ namespace Miyamasu {
                 }
             }
 
-            private IEnumerator _WaitCor (Reporter rep) {
+            private IEnumerator _WaitCor (Recorder rep) {
                 while (true) {
                     if (assert()) {
                         // done.

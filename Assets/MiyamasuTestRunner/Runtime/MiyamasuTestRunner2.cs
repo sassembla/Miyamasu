@@ -54,7 +54,7 @@ public class " + klass.className + @"_Miyamasu {";
                 */
                 foreach (var methodName in klass.methodNames) {
                     classDesc += methodDesc + methodName + @"() {
-        var rep = new Miyamasu.Reporter(" + "\"" + klass.className + "\", \"" + methodName + "\"" + @");
+        var rep = new Miyamasu.Recorder(" + "\"" + klass.className + "\", \"" + methodName + "\"" + @");
         var instance = new " + klass.className + @"();
         instance.rep = rep;
 
