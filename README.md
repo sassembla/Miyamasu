@@ -30,6 +30,8 @@ Unity > Window > Miyamasu Test Runner > Open Settings
 
 
 ## Future
+* run on UnityCloudBuild.
+* device tests orchestration.
 * send failed test logs to Slack.
 * accept command from Slack.
 
