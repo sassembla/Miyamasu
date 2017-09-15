@@ -55,3 +55,60 @@ public class FailSample : MiyamasuTestRunner {
 		);
 	}
 }
+
+public class MoreTests : MiyamasuTestRunner {
+	[MTest] public IEnumerator A () {
+		AreEqual("", "");
+		yield return null;
+	}
+
+	[MTest] public IEnumerator B () {
+		True("" == string.Empty);
+		yield return null;
+	}
+
+	[MTest] public IEnumerator C () {
+		True("" == string.Empty);
+		yield return null;
+	}
+
+	[MTest] public IEnumerator D () {
+		True("" == string.Empty);
+		yield return null;
+	}
+
+	[MTest] public IEnumerator E () {
+		True("" == string.Empty);
+		yield return null;
+	}
+
+	[MTest] public IEnumerator F () {
+		Zero(0);
+		yield return null;
+	}
+
+	[MTest] public IEnumerator G () {
+		Zero(1);
+		yield return null;
+	}
+
+	[MTest] public IEnumerator H () {
+		IsNotEmpty("0");
+		yield return null;
+	}
+
+	[MTest] public IEnumerator I () {
+		IsNotEmpty("0");
+		yield return null;
+	}
+
+	[MTest] public IEnumerator J () {
+		IsNotEmpty("0");
+		yield return null;
+	}
+
+	[MTest] public IEnumerator K () {
+		IsNotEmpty("0");
+		yield return null;
+	}
+}
