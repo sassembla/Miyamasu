@@ -30,10 +30,10 @@ namespace Miyamasu {
 			var go = new GameObject("MiyamasuTestMainThreadRunner");
 			go.hideFlags = go.hideFlags | HideFlags.HideAndDontSave;
 			
-			var mb = go.AddComponent<MainThreadRunner>();
-			var s = new MiyamasuRuntimeRunnerGenerator();
+			var runner = go.AddComponent<MainThreadRunner>();
+			var testRunnerGen = new MiyamasuRuntimeRunnerGenerator();
 
-			mb.SequentialExecute(s.TestMethodEnums());
+			runner.SetTests(testRunnerGen.TestMethodEnums());
 		}
 
 		public MiyamasuRuntimeRunnerGenerator () {}

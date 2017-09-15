@@ -59,6 +59,24 @@ namespace Miyamasu {
         // public new void ByVal(object actual, IResolveConstraint expression, string message, params object[] args) {
         //     ByVal(object actual, IResolveConstraint expression, string message, params object[] args)
         // }
+        // public new TActual Catch<TActual>(TestDelegate code) where TActual : Exception {
+        //     Catch<TActual>(TestDelegate code)
+        // }
+        // public new TActual Catch<TActual>(TestDelegate code, string message, params object[] args) where TActual : Exception {
+        //     Catch<TActual>(TestDelegate code, string message, params object[] args)
+        // }
+        // public new Exception Catch(Type expectedExceptionType, TestDelegate code) {
+        //     Catch(Type expectedExceptionType, TestDelegate code)
+        // }
+        // public new Exception Catch(Type expectedExceptionType, TestDelegate code, string message, params object[] args) {
+        //     Catch(Type expectedExceptionType, TestDelegate code, string message, params object[] args)
+        // }
+        // public new Exception Catch(TestDelegate code) {
+        //     Catch(TestDelegate code)
+        // }
+        // public new Exception Catch(TestDelegate code, string message, params object[] args) {
+        //     Catch(TestDelegate code, string message, params object[] args)
+        // }
         // public new void Contains(object expected, ICollection actual) {
         //     Contains(object expected, ICollection actual)
         // }
@@ -71,15 +89,23 @@ namespace Miyamasu {
         // public new void DoesNotThrow(TestDelegate code) {
         //     DoesNotThrow(TestDelegate code)
         // }
-        // public new void Fail(string message, params object[] args) {
-        //     Fail(string message, params object[] args)
-        // }
-        // public new void Fail(string message) {
-        //     Fail(string message)
-        // }
-        // public new void Fail() {
-        //     Fail()
-        // }
+        public new bool Equals(object a, object b) {
+            var result = false;
+            rec.MarkAsAssertionFailed(() => {
+                result = Assert.Equals(a, b);
+            });
+            return result;
+        }
+        public new void Fail(string message, params object[] args) {
+            rec.MarkAsAssertionFailed(() => Assert.Fail(message, args));
+            
+        }
+        public new void Fail(string message) {
+            rec.MarkAsAssertionFailed(() => Assert.Fail(message));
+        }
+        public new void Fail() {
+            rec.MarkAsAssertionFailed(() => Assert.Fail());
+        }
         // public new void False(bool? condition, string message, params object[] args) {
         //     False(bool? condition, string message, params object[] args)
         // }

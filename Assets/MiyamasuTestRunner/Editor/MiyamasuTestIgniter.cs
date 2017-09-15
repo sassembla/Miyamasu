@@ -124,7 +124,7 @@ namespace Miyamasu {
 				return;
             }
 
-			Debug.Log("generating test entrypoint code. targetClassDesc:" + targetClassDesc);
+			Debug.Log("generating test entrypoint code.");
 
 			FileController.RemakeDirectory(GENERATED_ENTRYPOINT_FOLDER_PATH);
 			using (var sw = new StreamWriter(GENERATED_ENTRYPOINT_CS_PATH)) {
