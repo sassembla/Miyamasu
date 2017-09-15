@@ -11,10 +11,10 @@ using UnityEngine.TestTools;
 using System.Collections.Generic;
 
 /**
-	MiyamasuTestRunner
+	MiyamasuRuntimeRunnerGenerator
 */
 namespace Miyamasu {
-	public class MiyamasuTestRunner {
+	public class MiyamasuRuntimeRunnerGenerator {
 		/**
 			run on app playing handler.
 		 */
@@ -31,12 +31,12 @@ namespace Miyamasu {
 			go.hideFlags = go.hideFlags | HideFlags.HideAndDontSave;
 			
 			var mb = go.AddComponent<MainThreadRunner>();
-			var s = new MiyamasuTestRunner();
+			var s = new MiyamasuRuntimeRunnerGenerator();
 
 			mb.SequentialExecute(s.TestMethodEnums());
 		}
 
-		public MiyamasuTestRunner () {}
+		public MiyamasuRuntimeRunnerGenerator () {}
 		public Func<IEnumerator>[] TestMethodEnums () {
 			var testTargetMethods = Assembly.GetExecutingAssembly().
 				GetTypes().SelectMany(t => t.GetMethods()).
@@ -101,13 +101,13 @@ namespace Miyamasu {
 		public const string MIYAMASU_TESTLOG_FILE_NAME = "miyamasu_test.log";
 	}
 
-	[AttributeUsage(AttributeTargets.Method)] public class MSetup2Attribute : Attribute {
-		public MSetup2Attribute() {}
+	[AttributeUsage(AttributeTargets.Method)] public class MSetupAttribute : Attribute {
+		public MSetupAttribute() {}
 	}
-	[AttributeUsage(AttributeTargets.Method)] public class MTeardown2Attribute : Attribute {
-		public MTeardown2Attribute() {}
+	[AttributeUsage(AttributeTargets.Method)] public class MTeardownAttribute : Attribute {
+		public MTeardownAttribute() {}
 	}
-	[AttributeUsage(AttributeTargets.Method)] public class MTest2Attribute : Attribute {
-		public MTest2Attribute() {}
+	[AttributeUsage(AttributeTargets.Method)] public class MTestAttribute : Attribute {
+		public MTestAttribute() {}
 	}
 }

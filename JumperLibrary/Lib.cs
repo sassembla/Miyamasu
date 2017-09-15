@@ -10,7 +10,7 @@ using UnityEngine;
     coroutineからの復帰が可能な形でWaitUntilが実装されている。
  */
 namespace Miyamasu {
-    public class MiyamasuTestRunner2 : Assert {
+    public class MiyamasuTestRunner : Assert {
         public Recorder rec;
 
         public _WaitUntil WaitUntil (Func<bool> assert, Action onTimeout, double sec=5.0) {

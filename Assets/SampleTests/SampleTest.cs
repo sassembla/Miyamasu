@@ -9,16 +9,16 @@ using UnityEngine;
 /**
 	samples of test.
 */
-public class MiyamasuTestRunnerSample : MiyamasuTestRunner2 {
-	[MSetup2] public void Setup () {
+public class MiyamasuTestRunnerSample : MiyamasuTestRunner {
+	[MSetup] public void Setup () {
 		Debug.Log("setup!");
 	}
 
-	[MTeardown2] public void Teardown () {
+	[MTeardown] public void Teardown () {
 		Debug.Log("Teardown!");
 	}
 
-	[MTest2] public IEnumerator SomeA () {
+	[MTest] public IEnumerator SomeA () {
 		Debug.Log("before");
 		
 		AreEqual("", "");
@@ -39,16 +39,16 @@ public class MiyamasuTestRunnerSample : MiyamasuTestRunner2 {
 	}
 }
 
-public class MiyamasuTestRunnerSample2 : MiyamasuTestRunner2 {
-	[MSetup2] public void Setup () {
+public class MiyamasuTestRunnerSample2 : MiyamasuTestRunner {
+	[MSetup] public void Setup () {
 		Debug.Log("setup2!");
 	}
 
-	[MTeardown2] public void Teardown () {
+	[MTeardown] public void Teardown () {
 		Debug.Log("Teardown2!");
 	}
 
-	[MTest2] public IEnumerator Some () {
+	[MTest] public IEnumerator Some () {
 		Debug.Log("before2");
 		
 		AreEqual("", "");
@@ -70,7 +70,7 @@ public class MiyamasuTestRunnerSample2 : MiyamasuTestRunner2 {
 		Debug.Log("after2");
 	}
 
-	[MTest2] public IEnumerator Else () {
+	[MTest] public IEnumerator Else () {
 		Debug.Log("before3");
 		
 		AreEqual("", "");
@@ -90,7 +90,7 @@ public class MiyamasuTestRunnerSample2 : MiyamasuTestRunner2 {
 		Debug.Log("after3");
 	}
 
-	[MTest2] public IEnumerator Other () {
+	[MTest] public IEnumerator Other () {
 		Debug.Log("before4");
 		
 		yield return null;

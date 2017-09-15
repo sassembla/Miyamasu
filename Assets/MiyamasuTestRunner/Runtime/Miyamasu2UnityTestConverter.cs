@@ -12,16 +12,16 @@ namespace Miyamasu {
      */
     public class Miyamasu2UnityTestConverter {
 		public static string GenerateRuntimeTests() {
-            var targetTypes = Assembly.GetExecutingAssembly().GetTypes().Where(t => typeof(MiyamasuTestRunner2).IsAssignableFrom(t)).ToArray();
+            var targetTypes = Assembly.GetExecutingAssembly().GetTypes().Where(t => typeof(MiyamasuTestRunner).IsAssignableFrom(t)).ToArray();
             var classDescs = new List<TestEntryClass>();
 			
             foreach (var targetType in targetTypes) {
                 var allMethods = targetType.GetMethods();
-                var setup = allMethods.Where(methods => 0 < methods.GetCustomAttributes(typeof(MSetup2Attribute), false).Length).ToArray();
-                var teardown = allMethods.Where(methods => 0 < methods.GetCustomAttributes(typeof(MTeardown2Attribute), false).Length).ToArray();
+                var setup = allMethods.Where(methods => 0 < methods.GetCustomAttributes(typeof(MSetupAttribute), false).Length).ToArray();
+                var teardown = allMethods.Where(methods => 0 < methods.GetCustomAttributes(typeof(MTeardownAttribute), false).Length).ToArray();
 
 				var testMethods = allMethods
-					.Where(methods => 0 < methods.GetCustomAttributes(typeof(MTest2Attribute), false).Length)
+					.Where(methods => 0 < methods.GetCustomAttributes(typeof(MTestAttribute), false).Length)
 					.ToArray();
 
 				if (!testMethods.Any()) {

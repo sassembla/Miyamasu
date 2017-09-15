@@ -115,6 +115,7 @@ namespace Miyamasu {
         public void WriteReport (string message, ReportType type, Exception e=null) {
             if (mainThreadRunner == null) {
                 mainThreadRunner = GameObject.Find("MiyamasuTestMainThreadRunner");
+                Debug.LogError("mainThreadRunner:" + mainThreadRunner.GetInstanceID());
             }
 
             if (Application.isEditor) {
