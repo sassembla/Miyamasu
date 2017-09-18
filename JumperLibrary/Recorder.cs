@@ -122,7 +122,7 @@ namespace Miyamasu {
             if (Application.isEditor) {
                 // ログを出す
                 using (var sw = new StreamWriter("miyamasu.log", true)) {
-                    sw.WriteLine(type + ":" + message);
+                    sw.WriteLine(type + ":" + string.Join(" ", message));
                     if (e != null) {
                         sw.WriteLine("  " + e);
                     }
