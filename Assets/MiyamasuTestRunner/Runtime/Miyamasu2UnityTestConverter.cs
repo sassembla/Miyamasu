@@ -67,8 +67,9 @@ public class " + klass.className + @"_Miyamasu {";
 
         " + SetupDesc(klass.setupMethod) + @"
         
+        var startDate = DateTime.Now;
         " + MethodDesc(method) + @"
-        rec.MarkAsPassed();
+        rec.MarkAsPassed((DateTime.Now - startDate).ToString());
 
         " + TeardownDesc(klass.teardownMethod) + @"
     }";

@@ -18,12 +18,12 @@ namespace Miyamasu {
         }
 
         public void SetupFailed (Exception e) {
-            WriteReport(new string[]{className, methodName}, ReportType.AssertionFailed, e);
+            WriteReport(new string[]{className, methodName}, ReportType.AssertionFailed, string.Empty, e);
             isStoppedByFail = true;
         }
 
         public void TeardownFailed (Exception e) {
-            WriteReport(new string[]{className, methodName}, ReportType.AssertionFailed, e);
+            WriteReport(new string[]{className, methodName}, ReportType.AssertionFailed, string.Empty, e);
             isStoppedByFail = true;
         }
 
@@ -40,7 +40,7 @@ namespace Miyamasu {
                 var lineNumber = GetLineNumber(methodName);
                 Debug.LogError("    class:" + className + " method:" + methodName + " line:" + lineNumber + " e:" + e);
 
-                WriteReport(new string[]{className, methodName, lineNumber}, ReportType.AssertionFailed, e);
+                WriteReport(new string[]{className, methodName, lineNumber}, ReportType.AssertionFailed, string.Empty, e);
 
                 isStoppedByFail = true;
                 throw;
@@ -90,14 +90,16 @@ namespace Miyamasu {
         }
 
         public void MarkAsTimeout (Exception e) {
-            WriteReport(new string[]{className, methodName}, ReportType.FailedByTimeout, e);
+            WriteReport(new string[]{className, methodName}, ReportType.FailedByTimeout, string.Empty, e);
             isStoppedByFail = true;
         }
         
-        public void MarkAsPassed () {
+        public void MarkAsPassed (string dateDiff) {
             // このへんでレポート書く
             // Debug.Log("passed. class:" + className + " method:" + methodName);
-            WriteReport(new string[]{className, methodName}, ReportType.Passed);
+            var descs = dateDiff.Split(':').Where(d => d != "00").ToArray();
+            var timeDesc = string.Join(":", descs);
+            WriteReport(new string[]{className, methodName}, ReportType.Passed, timeDesc);
         }
 
         public enum ReportType {
@@ -114,7 +116,7 @@ namespace Miyamasu {
 
         public static Action<string[], ReportType, Exception> logAct;
 
-        public void WriteReport (string[] message, ReportType type, Exception e=null) {
+        public void WriteReport (string[] message, ReportType type, string seconds="", Exception e=null) {
             if (logAct == null) {
                 return;
             }
@@ -122,7 +124,16 @@ namespace Miyamasu {
             if (Application.isEditor) {
                 // ログを出す
                 using (var sw = new StreamWriter("miyamasu.log", true)) {
-                    sw.WriteLine(type + ":" + string.Join(" ", message));
+                    var str = type + ":" + string.Join(" ", message);
+
+                    // 時間がセットされていれば記載
+                    if (!string.IsNullOrEmpty(seconds)) {
+                        str += " in " + seconds + " sec";
+                    }
+                    
+                    sw.WriteLine(str);
+
+                    // errorを次の行から追記
                     if (e != null) {
                         sw.WriteLine("  " + e);
                     }

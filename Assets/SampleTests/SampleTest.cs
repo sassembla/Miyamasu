@@ -59,6 +59,7 @@ public class FailSample : MiyamasuTestRunner {
 public class MoreTests : MiyamasuTestRunner {
 	[MTest] public IEnumerator A () {
 		AreEqual("", "");
+		yield return new WaitForSeconds(1);
 		yield return null;
 	}
 
