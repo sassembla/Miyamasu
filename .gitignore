@@ -24,3 +24,7 @@ miyamasu_test.log
 Assets/MiyamasuTestRunner/Runtime/Generated/GeneratedTestEntryPoints.cs
 Assets/MiyamasuTestRunner/Runtime/Generated/GeneratedTestEntryPoints.cs.meta
 miyamasu.log
+Assets/TextMesh Pro/*
+Assets/TextMesh Pro.meta
+Assets/ChangeText.cs
+Assets/ChangeText.cs.meta
