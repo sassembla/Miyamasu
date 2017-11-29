@@ -34,6 +34,11 @@ Also running Unity Tests on Editor.
 ## Example of test
 
 ```C#
+using System;
+using System.Collections;
+using UnityEngine;
+using Miyamasu;
+
 public class SuccessSample : MiyamasuTestRunner {
 	// MSetup is annotation for setup.
 	// method should return void or IEnumerator.
