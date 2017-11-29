@@ -1,14 +1,18 @@
 using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
+using UnityEngine;
 
 public class PackageGenerator {
     [MenuItem("Window/Miyamasu Test Runner Editor/Update UnityPackage", false, 21)] public static void UnityPackage () {
+        // remove generated entry points.
+        Directory.Delete("Assets/MiyamasuTestRunner/Runtime/Generated", true);
+
         var assetPaths = new List<string>();
         var packageSourcePath = "Assets/MiyamasuTestRunner";
         
         CollectPathsRecursively(packageSourcePath, assetPaths);
-
+        
         AssetDatabase.ExportPackage(assetPaths.ToArray(), "MiyamasuTestRunner.unitypackage", ExportPackageOptions.IncludeDependencies);
     }
 
