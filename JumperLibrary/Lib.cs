@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Runtime.CompilerServices;
+using System.Text;
 using NUnit.Framework;
 using NUnit.Framework.Constraints;
 using UnityEngine;
@@ -773,56 +774,34 @@ namespace Miyamasu {
                     curl -X POST -H 'Authorization: Bearer xoxp-XXXX' -H 'Content-type: application/json' 
                     --data '{"channel":"miyamasu","text":"I hope"}' https://slack.com/api/chat.postMessage
                  */
-
-                // var uri = "https://slack.com/api/chat.postMessage";//?text="+message+"&channel="+channelName;
+                var uri = "https://slack.com/api/chat.postMessage";
                 
-                // // メッセージのセット。ここでカラーとかも扱える感じ。
                 var data = JsonUtility.ToJson(new Message(message, channelName));
-                // Debug.Log("data:" + data + " channelName:" + channelName + " token:" + token);
-
-                // var http = UnityWebRequest.Post(uri, data);
+                var http = new UnityWebRequest(uri, "POST");
                 
-                // http.SetRequestHeader("Authorization", "Bearer " + token);
-                // http.SetRequestHeader("Content-type", "application/json; charset=utf-8");
-                
-                // var p = http.Send();
+                http.SetRequestHeader("Authorization", "Bearer " + token);
+                http.SetRequestHeader("Content-type", "application/json; charset=utf-8");
+                var byteData = Encoding.UTF8.GetBytes(data);
+                http.uploadHandler = new UploadHandlerRaw(byteData);
 
-                // while (!p.isDone) {
-				// 	yield return null;
-                // }
+                // http.downloadHandler = new DownloadHandlerBuffer();
 
-                // Debug.Log("isError:" + http.isError);
+                var p = http.Send();
 
-                // var error = http.error;
-                // if (!string.IsNullOrEmpty(error)) {
-                //     Debug.Log("error:" + error);
-                // }
+                while (!p.isDone) {
+					yield return null;
+                }
 
-                // var code = http.responseCode;
-                // Debug.Log("code:" + code);
+                var error = http.error;
+                if (!string.IsNullOrEmpty(error)) {
+                    Debug.Log("error:" + error);
+                }
+
+                var code = http.responseCode;
+                Debug.Log("code:" + code);
 
                 // var responseData = System.Text.Encoding.UTF8.GetString(http.downloadHandler.data);
                 // Debug.Log("responseData:" + responseData);
-                 var httpWebRequest = (System.Net.HttpWebRequest)System.Net.WebRequest.Create("https://slack.com/api/chat.postMessage");
-                httpWebRequest.ContentType = "application/json";
-                httpWebRequest.Accept = "*/*";
-                httpWebRequest.Method = "POST";
-                httpWebRequest.Headers.Add("Authorization", "Bearer " + token);
-                var dataBytes = System.Text.Encoding.UTF8.GetBytes(data);
-                httpWebRequest.ContentLength = dataBytes.Length;
-
-                var newStream = httpWebRequest.GetRequestStream();
-                newStream.Write (dataBytes, 0, dataBytes.Length);
-                
-                var httpResponse = (System.Net.HttpWebResponse)httpWebRequest.GetResponse();
-
-                using (var streamReader = new System.IO.StreamReader(httpResponse.GetResponseStream()))
-                {
-                    var str = streamReader.ReadToEnd();
-                    Debug.Log("str:" + str);
-                }
-
-                yield return null;
             }
         }
     }
