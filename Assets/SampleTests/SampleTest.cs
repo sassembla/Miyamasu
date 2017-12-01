@@ -114,6 +114,10 @@ public class MoreTests : MiyamasuTestRunner {
 	}
 
 	[MTest] public IEnumerator SendLogToSlack () {
-		yield return SendLog("here!", "miyamasu", 0);
+		yield return SendLogToSlack("here log!", "miyamasu", 0);
+	}
+
+	[MTest] public IEnumerator SendScreenshotToSlack () {
+		yield return SendScreenshotToSlack("here scr!", "miyamasu", 0);
 	}
 }

@@ -1,5 +1,7 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
 using NUnit.Framework;
@@ -19,8 +21,12 @@ namespace Miyamasu {
             return new _WaitUntil(assert, onTimeout, sec, rec);
         }
 
-        public _SendLog SendLog (string message, string channelName, int type, string token) {
+        public _SendLog SendLogToSlack (string message, string channelName, int type, string token) {
             return new _SendLog(message, channelName, type, token, rec);
+        }
+
+        public _SendScreenshot SendScreenshotToSlack (string message, string channelName, int type, string token) {
+            return new _SendScreenshot(message, channelName, type, token, rec);
         }
 
         public new void AreEqual(object expected, object actual) {
@@ -802,6 +808,124 @@ namespace Miyamasu {
 
                 // var responseData = System.Text.Encoding.UTF8.GetString(http.downloadHandler.data);
                 // Debug.Log("responseData:" + responseData);
+            }
+        }
+        
+        public class _SendScreenshot : CustomYieldInstruction {
+            private readonly IEnumerator t;
+
+            public _SendScreenshot (string message, string channelName, int type, string token, Recorder rec) {
+                t = _WaitCor(message, channelName, type, token, rec);
+            }
+
+            public override bool keepWaiting {
+                get {
+                    return t.MoveNext();
+                }
+            }
+
+            private IEnumerator _WaitCor (string message, string channelName, int type, string token, Recorder rec) {
+                // スクリーンショットを撮影して、生成完了するまで適当に回して、アップロードを行う。
+                var fileName = message.Replace(" ", "_") + "_screenshot_" + DateTime.Now.ToString().Replace(":", "_").Replace(" ", "_").Replace("/", "_");
+                var basePath = Path.Combine(Application.persistentDataPath, fileName);
+                Application.CaptureScreenshot(basePath);// supersize = 0.
+                
+                while (!File.Exists(basePath)) {
+                    Debug.Log("waiting. basePath:" + basePath);
+                    yield return null;
+                }
+
+                Debug.Log("start sending.");
+
+                // file found. start uploading.
+                
+                /*
+                    curl -F file=@scr.png 
+                    -F channels=#miyamasu 
+                    -F token=xoxp-XXXX 
+                    https://slack.com/api/files.upload
+                 */
+                var uri = "https://slack.com/api/files.upload";
+                
+                var data = File.ReadAllBytes(basePath);
+
+                // var formSections = new List<IMultipartFormSection>();
+                // formSections.Add(new MultipartFormDataSection("channels=#miyamasu"));
+                // formSections.Add(new MultipartFormDataSection("token=" + token));
+                // formSections.Add(new MultipartFormFileSection("test", data, "fileName", "image/x-png"));
+                
+                // var http = UnityWebRequest.Post(uri, formSections);
+                // var p = http.Send();
+
+                // while (!p.isDone) {
+				// 	yield return null;
+                // }
+
+                // // delete file anyway.
+                // // File.Delete(basePath);
+
+                // var error = http.error;
+                // if (!string.IsNullOrEmpty(error)) {
+                //     Debug.Log("error:" + error);
+                // }
+
+                // var code = http.responseCode;
+                // Debug.Log("code:" + code);// 503か〜〜
+
+                // var responseData = System.Text.Encoding.UTF8.GetString(http.downloadHandler.data);
+                // Debug.Log("responseData:" + responseData);
+
+                string boundary = "---------------------------" + DateTime.Now.Ticks.ToString("x");
+                byte[] boundarybytes = System.Text.Encoding.ASCII.GetBytes("\r\n--" + boundary + "\r\n");
+
+                var wr = (System.Net.HttpWebRequest)System.Net.WebRequest.Create(uri);
+                wr.ContentType = "multipart/form-data; boundary=" + boundary;
+                wr.Method = "POST";
+                wr.KeepAlive = true;
+                wr.Credentials = System.Net.CredentialCache.DefaultCredentials;
+
+                Stream rs = wr.GetRequestStream();
+
+                var nvc = new System.Collections.Specialized.NameValueCollection();
+                nvc.Add("channels", "#miyamasu");
+                nvc.Add("token", token);
+
+                string formdataTemplate = "Content-Disposition: form-data; name=\"{0}\"\r\n\r\n{1}";
+                foreach (string key in nvc.Keys)
+                {
+                    rs.Write(boundarybytes, 0, boundarybytes.Length);
+                    string formitem = string.Format(formdataTemplate, key, nvc[key]);
+                    byte[] formitembytes = System.Text.Encoding.UTF8.GetBytes(formitem);
+                    rs.Write(formitembytes, 0, formitembytes.Length);
+                }
+                rs.Write(boundarybytes, 0, boundarybytes.Length);
+
+                string headerTemplate = "Content-Disposition: form-data; name=\"{0}\"; filename=\"{1}\"\r\nContent-Type: {2}\r\n\r\n";
+                string header = string.Format(headerTemplate, "file", fileName, "image/png");
+                byte[] headerbytes = System.Text.Encoding.UTF8.GetBytes(header);
+                rs.Write(headerbytes, 0, headerbytes.Length);
+
+                rs.Write(data, 0, data.Length);
+                
+                byte[] trailer = System.Text.Encoding.ASCII.GetBytes("\r\n--" + boundary + "--\r\n");
+                rs.Write(trailer, 0, trailer.Length);
+                rs.Close();
+
+                System.Net.WebResponse wresp = null;
+                try {
+                    wresp = wr.GetResponse();
+                    Stream stream2 = wresp.GetResponseStream();
+                    StreamReader reader2 = new StreamReader(stream2);
+                    Debug.Log(string.Format("File uploaded, server response is: {0}", reader2.ReadToEnd()));
+                } catch(Exception ex) {
+                    Debug.Log("Error uploading file:" + ex);
+                    if(wresp != null) {
+                        wresp.Close();
+                        wresp = null;
+                    }
+                } finally {
+                    wr = null;
+                }
             }
         }
     }
