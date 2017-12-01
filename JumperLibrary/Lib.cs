@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using NUnit.Framework;
 using NUnit.Framework.Constraints;
 using UnityEngine;
+using UnityEngine.Networking;
 
 /**
     NUnitをラップしつつなおかつログ出力を行うラップ部。
@@ -15,6 +16,10 @@ namespace Miyamasu {
 
         public _WaitUntil WaitUntil (Func<bool> assert, Action onTimeout, double sec=5.0) {
             return new _WaitUntil(assert, onTimeout, sec, rec);
+        }
+
+        public _SendLog SendLog (string message, string channelName, int type, string token) {
+            return new _SendLog(message, channelName, type, token, rec);
         }
 
         public new void AreEqual(object expected, object actual) {
@@ -738,6 +743,86 @@ namespace Miyamasu {
 
                     yield return null;
                 }
+            }
+        }
+
+        // send log to slack.
+        public class _SendLog : CustomYieldInstruction {
+            private readonly IEnumerator t;
+            public _SendLog (string message, string channelName, int type, string token, Recorder rec) {
+                this.t = _WaitCor(message, channelName, type, token, rec);
+            }
+
+            public override bool keepWaiting {
+                get {
+                    return t.MoveNext();
+                }
+            }
+
+            private class Message {
+                public string text;
+                public string channel;
+                public Message (string message, string channelName) {
+                    this.text = message;
+                    this.channel = channelName;
+                }
+            }
+
+            private IEnumerator _WaitCor (string message, string channelName, int type, string token, Recorder rec) {
+                /*
+                    curl -X POST -H 'Authorization: Bearer xoxp-XXXX' -H 'Content-type: application/json' 
+                    --data '{"channel":"miyamasu","text":"I hope"}' https://slack.com/api/chat.postMessage
+                 */
+
+                // var uri = "https://slack.com/api/chat.postMessage";//?text="+message+"&channel="+channelName;
+                
+                // // メッセージのセット。ここでカラーとかも扱える感じ。
+                var data = JsonUtility.ToJson(new Message(message, channelName));
+                // Debug.Log("data:" + data + " channelName:" + channelName + " token:" + token);
+
+                // var http = UnityWebRequest.Post(uri, data);
+                
+                // http.SetRequestHeader("Authorization", "Bearer " + token);
+                // http.SetRequestHeader("Content-type", "application/json; charset=utf-8");
+                
+                // var p = http.Send();
+
+                // while (!p.isDone) {
+				// 	yield return null;
+                // }
+
+                // Debug.Log("isError:" + http.isError);
+
+                // var error = http.error;
+                // if (!string.IsNullOrEmpty(error)) {
+                //     Debug.Log("error:" + error);
+                // }
+
+                // var code = http.responseCode;
+                // Debug.Log("code:" + code);
+
+                // var responseData = System.Text.Encoding.UTF8.GetString(http.downloadHandler.data);
+                // Debug.Log("responseData:" + responseData);
+                 var httpWebRequest = (System.Net.HttpWebRequest)System.Net.WebRequest.Create("https://slack.com/api/chat.postMessage");
+                httpWebRequest.ContentType = "application/json";
+                httpWebRequest.Accept = "*/*";
+                httpWebRequest.Method = "POST";
+                httpWebRequest.Headers.Add("Authorization", "Bearer " + token);
+                var dataBytes = System.Text.Encoding.UTF8.GetBytes(data);
+                httpWebRequest.ContentLength = dataBytes.Length;
+
+                var newStream = httpWebRequest.GetRequestStream();
+                newStream.Write (dataBytes, 0, dataBytes.Length);
+                
+                var httpResponse = (System.Net.HttpWebResponse)httpWebRequest.GetResponse();
+
+                using (var streamReader = new System.IO.StreamReader(httpResponse.GetResponseStream()))
+                {
+                    var str = streamReader.ReadToEnd();
+                    Debug.Log("str:" + str);
+                }
+
+                yield return null;
             }
         }
     }

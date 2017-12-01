@@ -63,6 +63,8 @@ namespace Miyamasu {
                     logPath = "C:/Users/" + Environment.UserName + "/AppData/Local/Unity/Editor/Editor.log";
                 } else if (Application.platform == RuntimePlatform.OSXEditor) {
                     logPath = "/Users/" + Environment.UserName + "/Library/Logs/Unity/Editor.log";
+                } else {
+                    return string.Empty;
                 }
 
                 using (var reader = new StreamReader(logPath)) {
@@ -95,8 +97,6 @@ namespace Miyamasu {
         }
         
         public void MarkAsPassed (string dateDiff) {
-            // このへんでレポート書く
-            // Debug.Log("passed. class:" + className + " method:" + methodName);
             var descs = dateDiff.Split(':').Where(d => d != "00").ToArray();
             var timeDesc = string.Join(":", descs);
             WriteReport(new string[]{className, methodName}, ReportType.Passed, timeDesc);

@@ -10,10 +10,12 @@ namespace Miyamasu {
 
 	public class SettingWindow {
 		public bool runOnPlay;
+		public string slackToken;
 
 		public SettingWindow () {
 			var settings = Settings.LoadSettings();
 			runOnPlay = settings.runOnPlay;
+			slackToken = settings.slackToken;
 		}
 
 
@@ -40,6 +42,7 @@ namespace Miyamasu {
 		public void Save () {
 			var settings = Settings.LoadSettings();
 			settings.runOnPlay = runOnPlay;
+			settings.slackToken = slackToken;
 			Settings.WriteSettings(settings);
 			Debug.Log("Miyamasu setting updated.");
 

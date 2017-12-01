@@ -6,6 +6,7 @@ namespace Miyamasu {
 
 	[Serializable] public class RunnerSettings {
 		[SerializeField] public bool runOnPlay = true;
+		[SerializeField] public string slackToken = string.Empty;
 	}
 
 	/**

@@ -112,4 +112,8 @@ public class MoreTests : MiyamasuTestRunner {
 		IsNotEmpty("0");
 		yield return null;
 	}
+
+	[MTest] public IEnumerator S () {
+		yield return SendLog("here!", "miyamasu", 0, "xoxp-280101319394-279444085536-280317596773-1ec6c7c40c3ec9db743d31f755c4c1b6");
+	}
 }
