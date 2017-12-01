@@ -1,7 +1,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.IO;
+using System.Net;
 using System.Runtime.CompilerServices;
 using System.Text;
 using NUnit.Framework;
@@ -849,6 +851,9 @@ namespace Miyamasu {
                 
                 var data = File.ReadAllBytes(basePath);
 
+                // UnityWebRequsetでのPostメソッドの持ってるパラメータといろんなAPIの相性が悪い
+                //  + formをrawから組み立てる方法がないような感じなのでHTTPWebRequestを使う。
+
                 // var formSections = new List<IMultipartFormSection>();
                 // formSections.Add(new MultipartFormDataSection("channels=#miyamasu"));
                 // formSections.Add(new MultipartFormDataSection("token=" + token));
@@ -875,57 +880,59 @@ namespace Miyamasu {
                 // var responseData = System.Text.Encoding.UTF8.GetString(http.downloadHandler.data);
                 // Debug.Log("responseData:" + responseData);
 
-                string boundary = "---------------------------" + DateTime.Now.Ticks.ToString("x");
-                byte[] boundarybytes = System.Text.Encoding.ASCII.GetBytes("\r\n--" + boundary + "\r\n");
+                // ready multipart post request to slack.
+                var boundary = "---------------------------" + DateTime.Now.Ticks.ToString("x");
+                var boundarybytes = System.Text.Encoding.ASCII.GetBytes("\r\n--" + boundary + "\r\n");
 
-                var wr = (System.Net.HttpWebRequest)System.Net.WebRequest.Create(uri);
-                wr.ContentType = "multipart/form-data; boundary=" + boundary;
-                wr.Method = "POST";
-                wr.KeepAlive = true;
-                wr.Credentials = System.Net.CredentialCache.DefaultCredentials;
+                var multipartFormRequest = WebRequest.Create(uri) as HttpWebRequest;
 
-                Stream rs = wr.GetRequestStream();
+                multipartFormRequest.ContentType = "multipart/form-data; boundary=" + boundary;
+                multipartFormRequest.Method = "POST";
+                multipartFormRequest.KeepAlive = true;
+                multipartFormRequest.Credentials = System.Net.CredentialCache.DefaultCredentials;
 
-                var nvc = new System.Collections.Specialized.NameValueCollection();
-                nvc.Add("channels", "#miyamasu");
-                nvc.Add("token", token);
+                // add form parameters.
+                var formParameters = new NameValueCollection();
+                formParameters.Add("channels", "#miyamasu");
+                formParameters.Add("token", token);
 
-                string formdataTemplate = "Content-Disposition: form-data; name=\"{0}\"\r\n\r\n{1}";
-                foreach (string key in nvc.Keys)
-                {
-                    rs.Write(boundarybytes, 0, boundarybytes.Length);
-                    string formitem = string.Format(formdataTemplate, key, nvc[key]);
-                    byte[] formitembytes = System.Text.Encoding.UTF8.GetBytes(formitem);
-                    rs.Write(formitembytes, 0, formitembytes.Length);
-                }
-                rs.Write(boundarybytes, 0, boundarybytes.Length);
-
-                string headerTemplate = "Content-Disposition: form-data; name=\"{0}\"; filename=\"{1}\"\r\nContent-Type: {2}\r\n\r\n";
-                string header = string.Format(headerTemplate, "file", fileName, "image/png");
-                byte[] headerbytes = System.Text.Encoding.UTF8.GetBytes(header);
-                rs.Write(headerbytes, 0, headerbytes.Length);
-
-                rs.Write(data, 0, data.Length);
-                
-                byte[] trailer = System.Text.Encoding.ASCII.GetBytes("\r\n--" + boundary + "--\r\n");
-                rs.Write(trailer, 0, trailer.Length);
-                rs.Close();
-
-                System.Net.WebResponse wresp = null;
-                try {
-                    wresp = wr.GetResponse();
-                    Stream stream2 = wresp.GetResponseStream();
-                    StreamReader reader2 = new StreamReader(stream2);
-                    Debug.Log(string.Format("File uploaded, server response is: {0}", reader2.ReadToEnd()));
-                } catch(Exception ex) {
-                    Debug.Log("Error uploading file:" + ex);
-                    if(wresp != null) {
-                        wresp.Close();
-                        wresp = null;
+                using (var rs = multipartFormRequest.GetRequestStream()) {
+                    var formdataTemplate = "Content-Disposition: form-data; name=\"{0}\"\r\n\r\n{1}";
+                    foreach (string key in formParameters.Keys) {
+                        rs.Write(boundarybytes, 0, boundarybytes.Length);
+                        string formitem = string.Format(formdataTemplate, key, formParameters[key]);
+                        byte[] formitembytes = System.Text.Encoding.UTF8.GetBytes(formitem);
+                        rs.Write(formitembytes, 0, formitembytes.Length);
                     }
-                } finally {
-                    wr = null;
+                    rs.Write(boundarybytes, 0, boundarybytes.Length);
+
+                    var headerTemplate = "Content-Disposition: form-data; name=\"{0}\"; filename=\"{1}\"\r\nContent-Type: {2}\r\n\r\n";
+                    var header = string.Format(headerTemplate, "file", fileName, "image/png");
+                    var headerbytes = Encoding.UTF8.GetBytes(header);
+                    rs.Write(headerbytes, 0, headerbytes.Length);
+
+                    // 多分ここが軽くない。時間計ってみよう。
+                    rs.Write(data, 0, data.Length);
+                    
+                    var trailer = Encoding.ASCII.GetBytes("\r\n--" + boundary + "--\r\n");
+                    rs.Write(trailer, 0, trailer.Length);
                 }
+
+                var lockObj = new object();
+
+                var ar = multipartFormRequest.BeginGetResponse((a) => {
+                    Debug.Log("done.");
+                    multipartFormRequest.EndGetResponse(a);
+                }, lockObj);
+
+                while (!ar.IsCompleted) {
+                    yield return null;
+                }
+
+                // var wresp = multipartFormRequest.GetResponse();
+                // Stream stream2 = wresp.GetResponseStream();
+                // StreamReader reader2 = new StreamReader(stream2);
+                // Debug.Log(string.Format("File uploaded, server response is: {0}", reader2.ReadToEnd()));
             }
         }
     }
