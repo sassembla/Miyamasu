@@ -849,36 +849,8 @@ namespace Miyamasu {
                  */
                 var uri = "https://slack.com/api/files.upload";
                 
-                var data = File.ReadAllBytes(basePath);
 
-                // UnityWebRequsetでのPostメソッドの持ってるパラメータといろんなAPIの相性が悪い
-                //  + formをrawから組み立てる方法がないような感じなのでHTTPWebRequestを使う。
-
-                // var formSections = new List<IMultipartFormSection>();
-                // formSections.Add(new MultipartFormDataSection("channels=#miyamasu"));
-                // formSections.Add(new MultipartFormDataSection("token=" + token));
-                // formSections.Add(new MultipartFormFileSection("test", data, "fileName", "image/x-png"));
-                
-                // var http = UnityWebRequest.Post(uri, formSections);
-                // var p = http.Send();
-
-                // while (!p.isDone) {
-				// 	yield return null;
-                // }
-
-                // // delete file anyway.
-                // // File.Delete(basePath);
-
-                // var error = http.error;
-                // if (!string.IsNullOrEmpty(error)) {
-                //     Debug.Log("error:" + error);
-                // }
-
-                // var code = http.responseCode;
-                // Debug.Log("code:" + code);// 503か〜〜
-
-                // var responseData = System.Text.Encoding.UTF8.GetString(http.downloadHandler.data);
-                // Debug.Log("responseData:" + responseData);
+                var lockObj = new object();
 
                 // ready multipart post request to slack.
                 var boundary = "---------------------------" + DateTime.Now.Ticks.ToString("x");
@@ -895,7 +867,8 @@ namespace Miyamasu {
                 var formParameters = new NameValueCollection();
                 formParameters.Add("channels", "#miyamasu");
                 formParameters.Add("token", token);
-
+                
+                
                 using (var rs = multipartFormRequest.GetRequestStream()) {
                     var formdataTemplate = "Content-Disposition: form-data; name=\"{0}\"\r\n\r\n{1}";
                     foreach (string key in formParameters.Keys) {
@@ -905,27 +878,47 @@ namespace Miyamasu {
                         rs.Write(formitembytes, 0, formitembytes.Length);
                     }
                     rs.Write(boundarybytes, 0, boundarybytes.Length);
-
+                
                     var headerTemplate = "Content-Disposition: form-data; name=\"{0}\"; filename=\"{1}\"\r\nContent-Type: {2}\r\n\r\n";
                     var header = string.Format(headerTemplate, "file", fileName, "image/png");
                     var headerbytes = Encoding.UTF8.GetBytes(header);
                     rs.Write(headerbytes, 0, headerbytes.Length);
-
-                    // 多分ここが軽くない。時間計ってみよう。
-                    rs.Write(data, 0, data.Length);
                     
+                    var length = 1024 * 100;// 100k
+                    var bytes = new byte[length];
+
+                    // send screenshot bytes with split by buffer size.
+                    using (var fStream = File.OpenRead(basePath)) {
+                        var continuation = true;
+                        
+                        Action onDone = () => {
+                            continuation = false;
+                        };
+
+                        // send recursive in async.
+                        SendScreenshotBytesAsync(bytes, rs, fStream, lockObj, onDone);
+
+                        while (continuation) {
+                            yield return null;
+                        }
+                    }
+                    
+                    // finished to send screenshot bytes.
                     var trailer = Encoding.ASCII.GetBytes("\r\n--" + boundary + "--\r\n");
                     rs.Write(trailer, 0, trailer.Length);
                 }
+                
+                // remove sended file.
+                File.Delete(basePath);
+                
+                var response = multipartFormRequest.BeginGetResponse(
+                    ar => {
+                        multipartFormRequest.EndGetResponse(ar);
+                    }, 
+                    lockObj
+                );
 
-                var lockObj = new object();
-
-                var ar = multipartFormRequest.BeginGetResponse((a) => {
-                    Debug.Log("done.");
-                    multipartFormRequest.EndGetResponse(a);
-                }, lockObj);
-
-                while (!ar.IsCompleted) {
+                while (!response.IsCompleted) {
                     yield return null;
                 }
 
@@ -933,6 +926,49 @@ namespace Miyamasu {
                 // Stream stream2 = wresp.GetResponseStream();
                 // StreamReader reader2 = new StreamReader(stream2);
                 // Debug.Log(string.Format("File uploaded, server response is: {0}", reader2.ReadToEnd()));
+            }
+
+
+            private void SendScreenshotBytesAsync (byte[] bytes, Stream writeStream, FileStream readStream, object lockObj, Action onDone) {
+                var rest = readStream.Length - readStream.Position;
+                
+                var readLength = bytes.Length;
+
+                // use rest size if rest size is little than buffer size.
+                if (rest < bytes.Length) {
+                    readLength = (int)rest;
+                }
+
+                // read file data async.
+                readStream.BeginRead(
+                    bytes, 
+                    0, 
+                    readLength, 
+                    readAsyncResult => {
+                        readStream.EndRead(readAsyncResult);
+
+                        // write file data to server async.
+                        writeStream.BeginWrite(
+                            bytes, 
+                            0, 
+                            readLength,
+                            writeAsyncResult => {
+                                writeStream.EndWrite(writeAsyncResult);
+                                
+                                // no bytes remains.
+                                if (readStream.Length - readStream.Position == 0) {
+                                    onDone();
+                                    return;
+                                }
+
+                                // continue sending rest bytes.
+                                SendScreenshotBytesAsync(bytes, writeStream, readStream, lockObj, onDone);
+                            }, 
+                            lockObj
+                        );
+                    }, 
+                    lockObj
+                );
             }
         }
     }
