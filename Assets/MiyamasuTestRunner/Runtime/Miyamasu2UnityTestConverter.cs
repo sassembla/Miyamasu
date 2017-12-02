@@ -71,7 +71,7 @@ public class " + klass.className + @"_Miyamasu {";
         " + MethodDesc(method) + @"
         rec.MarkAsPassed((DateTime.Now - startDate).ToString());
 
-        if (Application.isMobilePlatform || Recorder.settings.slackOutputAny) {
+        if (Application.isMobilePlatform || Settings.staticSettings.slackOutputAny) {
             yield return instance.SendLogToSlack(" + "\"" + "deviceName:sample test:" + klass.className + "/" + method.name + "\"" + @", 0);
         }
         " + TeardownDesc(klass.teardownMethod) + @"
