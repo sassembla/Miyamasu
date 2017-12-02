@@ -44,9 +44,11 @@ namespace Miyamasu {
             var totalClassDesc = string.Empty;
 
             totalClassDesc += @"
-using UnityEngine.TestTools;
 using System;
-using System.Collections;";
+using System.Collections;
+using UnityEngine;
+using UnityEngine.TestTools;
+using Miyamasu;";
             
             var methodDesc = @"
     [UnityTest] public IEnumerator ";
@@ -64,13 +66,14 @@ public class " + klass.className + @"_Miyamasu {";
         var rec = new Miyamasu.Recorder(" + "\"" + klass.className + "\", \"" + method.name + "\"" + @");
         var instance = new " + klass.className + @"();
         instance.rec = rec;
-
         " + SetupDesc(klass.setupMethod) + @"
-        
         var startDate = DateTime.Now;
         " + MethodDesc(method) + @"
         rec.MarkAsPassed((DateTime.Now - startDate).ToString());
 
+        if (Application.isMobilePlatform || Recorder.settings.slackOutputAny) {
+            yield return instance.SendLogToSlack(" + "\"" + "deviceName:sample test:" + klass.className + "/" + method.name + "\"" + @", 0);
+        }
         " + TeardownDesc(klass.teardownMethod) + @"
     }";
                 }

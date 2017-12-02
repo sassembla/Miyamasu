@@ -31,7 +31,7 @@ namespace Miyamasu {
 			// wait for check UnityTest is running or not.
 			yield return new WaitForSeconds(1);
 			
-			if (Miyamasu.Recorder.isRunning) {
+			if (Recorder.isRunning) {
 				Destroy(this);
 				yield break;
 			}
@@ -158,7 +158,6 @@ namespace Miyamasu {
 					</textbg>
 					<iconbg><" + icon + @"/></iconbg>
 				</bg><br>");
-
 		}
 
 		private static string Base64Encode(string plainText) {

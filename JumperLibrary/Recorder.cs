@@ -5,9 +5,18 @@ using System.Linq;
 using UnityEngine;
 
 namespace Miyamasu {
+    [Serializable] public class RunnerSettings {
+		[SerializeField] public bool runOnPlay = true;
+		[SerializeField] public string slackToken = string.Empty;
+		[SerializeField] public string slackChannelName = string.Empty;
+        [SerializeField] public bool slackOutputAny = false;
+	}
+    
     public class Recorder {
         public static bool isRunning = false;
         public static bool isStoppedByFail = false;
+
+        public static RunnerSettings settings;
 
         private readonly string className;
         private readonly string methodName;
@@ -117,12 +126,8 @@ namespace Miyamasu {
         public static Action<string[], ReportType, Exception> logAct;
 
         public void WriteReport (string[] message, ReportType type, string seconds="", Exception e=null) {
-            if (logAct == null) {
-                return;
-            }
-
+            // write log files if editor.
             if (Application.isEditor) {
-                // ログを出す
                 using (var sw = new StreamWriter("miyamasu.log", true)) {
                     var str = type + ":" + string.Join(" ", message);
 

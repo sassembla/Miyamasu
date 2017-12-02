@@ -24,7 +24,10 @@ namespace Miyamasu {
 				// do nothing.
 				return;
 			}
-
+			
+			// set settings to global.
+			Recorder.settings = runnerSettings;
+			
 			// ready running.
 			
 			var go = new GameObject("MiyamasuTestMainThreadRunner");

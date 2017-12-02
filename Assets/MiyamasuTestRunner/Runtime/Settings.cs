@@ -4,11 +4,6 @@ using UnityEngine;
 
 namespace Miyamasu {
 
-	[Serializable] public class RunnerSettings {
-		[SerializeField] public bool runOnPlay = true;
-		[SerializeField] public string slackToken = string.Empty;
-	}
-
 	/**
 		interface for settings of Miyamasu.
 	*/

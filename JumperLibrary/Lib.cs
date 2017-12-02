@@ -23,12 +23,13 @@ namespace Miyamasu {
             return new _WaitUntil(assert, onTimeout, sec, rec);
         }
 
-        public _SendLog SendLogToSlack (string message, string channelName, int type, string token) {
-            return new _SendLog(message, channelName, type, token, rec);
+        public _SendLog SendLogToSlack (string message, int type) {
+            Debug.Log("SendLogToSlack");
+            return new _SendLog(message, type);
         }
 
-        public _SendScreenshot SendScreenshotToSlack (string message, string channelName, int type, string token) {
-            return new _SendScreenshot(message, channelName, type, token, rec);
+        public _SendScreenshot SendScreenshotToSlack (string message) {
+            return new _SendScreenshot(message);
         }
 
         public new void AreEqual(object expected, object actual) {
@@ -758,8 +759,8 @@ namespace Miyamasu {
         // send log to slack.
         public class _SendLog : CustomYieldInstruction {
             private readonly IEnumerator t;
-            public _SendLog (string message, string channelName, int type, string token, Recorder rec) {
-                this.t = _WaitCor(message, channelName, type, token, rec);
+            public _SendLog (string message, int type) {
+                this.t = _WaitCor(message, type);
             }
 
             public override bool keepWaiting {
@@ -777,17 +778,25 @@ namespace Miyamasu {
                 }
             }
 
-            private IEnumerator _WaitCor (string message, string channelName, int type, string token, Recorder rec) {
+            private IEnumerator _WaitCor (string message, int type) {
+
+                if (string.IsNullOrEmpty(Recorder.settings.slackToken)) {
+                    yield break;
+                }
+                if (string.IsNullOrEmpty(Recorder.settings.slackChannelName)) {
+                    yield break;
+                }
+
                 /*
                     curl -X POST -H 'Authorization: Bearer xoxp-XXXX' -H 'Content-type: application/json' 
                     --data '{"channel":"miyamasu","text":"I hope"}' https://slack.com/api/chat.postMessage
                  */
                 var uri = "https://slack.com/api/chat.postMessage";
                 
-                var data = JsonUtility.ToJson(new Message(message, channelName));
+                var data = JsonUtility.ToJson(new Message(message, Recorder.settings.slackChannelName));
                 var http = new UnityWebRequest(uri, "POST");
                 
-                http.SetRequestHeader("Authorization", "Bearer " + token);
+                http.SetRequestHeader("Authorization", "Bearer " + Recorder.settings.slackToken);
                 http.SetRequestHeader("Content-type", "application/json; charset=utf-8");
                 var byteData = Encoding.UTF8.GetBytes(data);
                 http.uploadHandler = new UploadHandlerRaw(byteData);
@@ -800,13 +809,13 @@ namespace Miyamasu {
 					yield return null;
                 }
 
-                var error = http.error;
-                if (!string.IsNullOrEmpty(error)) {
-                    Debug.Log("error:" + error);
-                }
+                // var error = http.error;
+                // if (!string.IsNullOrEmpty(error)) {
+                //     Debug.Log("error:" + error);
+                // }
 
-                var code = http.responseCode;
-                Debug.Log("code:" + code);
+                // var code = http.responseCode;
+                // Debug.Log("code:" + code);
 
                 // var responseData = System.Text.Encoding.UTF8.GetString(http.downloadHandler.data);
                 // Debug.Log("responseData:" + responseData);
@@ -816,8 +825,8 @@ namespace Miyamasu {
         public class _SendScreenshot : CustomYieldInstruction {
             private readonly IEnumerator t;
 
-            public _SendScreenshot (string message, string channelName, int type, string token, Recorder rec) {
-                t = _WaitCor(message, channelName, type, token, rec);
+            public _SendScreenshot (string message) {
+                t = _WaitCor(message);
             }
 
             public override bool keepWaiting {
@@ -826,18 +835,21 @@ namespace Miyamasu {
                 }
             }
 
-            private IEnumerator _WaitCor (string message, string channelName, int type, string token, Recorder rec) {
-                // スクリーンショットを撮影して、生成完了するまで適当に回して、アップロードを行う。
+            private IEnumerator _WaitCor (string message) {
+                if (string.IsNullOrEmpty(Recorder.settings.slackToken)) {
+                    yield break;
+                }
+                if (string.IsNullOrEmpty(Recorder.settings.slackChannelName)) {
+                    yield break;
+                }
+
                 var fileName = message.Replace(" ", "_") + "_screenshot_" + DateTime.Now.ToString().Replace(":", "_").Replace(" ", "_").Replace("/", "_");
                 var basePath = Path.Combine(Application.persistentDataPath, fileName);
                 Application.CaptureScreenshot(basePath);// supersize = 0.
                 
                 while (!File.Exists(basePath)) {
-                    Debug.Log("waiting. basePath:" + basePath);
                     yield return null;
                 }
-
-                Debug.Log("start sending.");
 
                 // file found. start uploading.
                 
@@ -866,7 +878,7 @@ namespace Miyamasu {
                 // add form parameters.
                 var formParameters = new NameValueCollection();
                 formParameters.Add("channels", "#miyamasu");
-                formParameters.Add("token", token);
+                formParameters.Add("token", Recorder.settings.slackToken);
                 
                 
                 using (var rs = multipartFormRequest.GetRequestStream()) {
