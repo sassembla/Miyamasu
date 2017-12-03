@@ -72,7 +72,7 @@ public class " + klass.className + @"_Miyamasu {";
         rec.MarkAsPassed((DateTime.Now - startDate).ToString());
 
         if (Application.isMobilePlatform || Settings.staticSettings.slackOutputAny) {
-            yield return instance.SendLogToSlack(" + "\"" + "deviceName:sample test:" + klass.className + "/" + method.name + "\"" + @", 0);
+            yield return instance.SendLogToSlack(" + "\"" + "device:\"" + " + SystemInfo.deviceName + " + "\" test:" + klass.className + "/" + method.name + "\"" + @", 0);
         }
         " + TeardownDesc(klass.teardownMethod) + @"
     }";

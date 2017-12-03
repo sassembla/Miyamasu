@@ -24,7 +24,6 @@ namespace Miyamasu {
         }
 
         public _SendLog SendLogToSlack (string message, int type) {
-            Debug.Log("SendLogToSlack");
             return new _SendLog(message, type);
         }
 
@@ -845,7 +844,12 @@ namespace Miyamasu {
 
                 var fileName = message.Replace(" ", "_") + "_screenshot_" + DateTime.Now.ToString().Replace(":", "_").Replace(" ", "_").Replace("/", "_");
                 var basePath = Path.Combine(Application.persistentDataPath, fileName);
-                Application.CaptureScreenshot(basePath);// supersize = 0.
+                
+                if (Application.isMobilePlatform) {
+                    Application.CaptureScreenshot(fileName);// supersize = 0.
+                } else {
+                    Application.CaptureScreenshot(basePath);// supersize = 0.
+                }
                 
                 while (!File.Exists(basePath)) {
                     yield return null;
