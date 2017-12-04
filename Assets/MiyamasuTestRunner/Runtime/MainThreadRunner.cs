@@ -11,11 +11,10 @@ using UUebView;
 namespace Miyamasu {
 	/**
 		running Miyamasu tests on MainThread of Unity.
+		このインスタンスはMiyamasuTestIgniterから生成される。
 	 */
 	public class MainThreadRunner : MonoBehaviour, IUUebViewEventHandler {
-		private int index = 0;
-		private bool started;
-
+		
 		private UUebViewComponent currentUUebViewComponent;
 		private RectTransform scrollViewRect;
 
@@ -27,17 +26,15 @@ namespace Miyamasu {
 				// wait to set enumGens;
 				yield return null;
 			}
-
-			this.index = 0;
-			var totalCount = iEnumGens.Length;
 			
 			// wait for check UnityTest is running or not.
 			yield return new WaitForSeconds(1);
 			
-			if (Recorder.isRunning) {
-				Destroy(this);
-				yield break;
-			}
+			Debug.Log("Editorの一覧からテストを実行した場合にテストを開始すると重複するので、停止させる、みたいな奴。");
+			// if (isRunning) {
+			// 	Destroy(this);
+			// 	yield break;
+			// }
 
 			var canvasCor = Resources.LoadAsync<GameObject>("MiyamasuPrefabs/MiyamasuCanvas");
 
@@ -65,15 +62,13 @@ namespace Miyamasu {
 			}
 
 			var scrollViewWidth = contentRect.rect.width;
-			Recorder.logAct = this.AddLog;
+			MiyamasuTestRunner.logAct = this.AddLog;
 
 			var view = UUebViewComponent.GenerateSingleViewFromHTML(this.gameObject, htmlContent, new Vector2(scrollViewWidth, 100));
 			view.name = "MiyamasuRuntimeConsole";
 			view.transform.SetParent(attachTargetView.transform, false);
 
 			currentUUebViewComponent = view.GetComponent<UUebViewComponent>();
-
-			started = true;
 
 			yield return RunTestCoroutines();
 		}
@@ -82,13 +77,13 @@ namespace Miyamasu {
 
 		void Update () {
 			
-			if (started && Recorder.isStoppedByFail) {
-				Debug.Log("これ直すと良さそう。");
-				Recorder.isStoppedByFail = false;
+			// if (started && isStoppedByFail) {
+			// 	Debug.Log("これ直すと良さそう。");
+			// 	isStoppedByFail = false;
 
-				// continue test.
-				StartCoroutine(RunTestCoroutines());
-			}
+			// 	// restart test from current.
+			// 	StartCoroutine(RunTestCoroutines());
+			// }
 
 			if (loaded) {
 				if (logList.Any()) {
@@ -102,19 +97,20 @@ namespace Miyamasu {
 			}
 		}
 		
-		private Func<IEnumerator>[] iEnumGens;
-		public void SetTests (Func<IEnumerator>[] iEnumGens) {
+		private Queue<Func<IEnumerator>> iEnumGens;
+		public void SetTests (Queue<Func<IEnumerator>> iEnumGens) {
 			this.iEnumGens = iEnumGens;
         }
 
 		private IEnumerator RunTestCoroutines () {
-			while (index < iEnumGens.Length) {
-				yield return iEnumGens[index++]();
+			// rest: iEnumGens.Count.
+			// current: iEnumGens.Count.
+
+			while (0 < iEnumGens.Count) {
+				yield return iEnumGens.Dequeue()();
 			}
 
-			Debug.Log("all tests finished.");
-
-			// yield return SendLogToSlack("all tests finished.", 0);
+			yield return new SlackIntegration._SendLog("全テスト終了", 0);
 		}
 		
 		private bool loaded;
@@ -122,23 +118,23 @@ namespace Miyamasu {
 		/**
 			this method will be called from jumper lib.
 		 */
-		public void AddLog (string[] message, Recorder.ReportType type, Exception e) {
+		public void AddLog (string[] message, ReportType type, Exception e) {
 			var icon = "pass";
 
 			switch (type) {
-				case Recorder.ReportType.AssertionFailed: {
+				case ReportType.AssertionFailed: {
 					icon = "fail";
 					break;
 				}
-				case Recorder.ReportType.FailedByTimeout: {
+				case ReportType.FailedByTimeout: {
 					icon = "timeout";
 					break;
 				}
-				case Recorder.ReportType.Error: {
+				case ReportType.Error: {
 					icon = "error";
 					break;
 				}
-				case Recorder.ReportType.Passed: {
+				case ReportType.Passed: {
 					icon = "pass";
 					break;
 				}
@@ -166,6 +162,9 @@ namespace Miyamasu {
 					</textbg>
 					<iconbg><" + icon + @"/></iconbg>
 				</bg><br>");
+
+			// 個別のテスト結果をサーバに届けるとしたらこの辺がベスト。igniterにあったほうが楽なのでは感がある。
+			StartCoroutine(new SlackIntegration._SendLog("error:" + error, 0));
 		}
 
 		private static string Base64Encode(string plainText) {

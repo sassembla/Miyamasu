@@ -22,18 +22,26 @@ namespace Miyamasu {
 				return;
 			}
 			
-			// set settings to global.
-			Recorder.settings = runnerSettings;
-			
+			// setup slack integration.
+			{
+				MiyamasuTestRunner.SendLogFunc = (message, type) => {
+					return new SlackIntegration._SendLog(message, type);
+				};
+
+				MiyamasuTestRunner.SendScreenshotFunc = (message) => {
+					return new SlackIntegration._SendScreenshot(message);
+				};
+			}
+
 			// ready running.
 			
 			var go = new GameObject("MiyamasuTestMainThreadRunner");
 			go.hideFlags = go.hideFlags | HideFlags.HideAndDontSave;
 			
-			var testEnums = MiyamasuTestEnumGenerator.TestMethodEnums();
+			var queuedTests = MiyamasuTestEnumGenerator.TestMethods();
 
 			var runner = go.AddComponent<MainThreadRunner>();
-			runner.SetTests(testEnums);
+			runner.SetTests(queuedTests);
 		}
 	}
 

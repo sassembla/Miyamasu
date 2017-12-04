@@ -63,13 +63,12 @@ public class " + klass.className + @"_Miyamasu {";
                 */
                 foreach (var method in klass.methods) {
                     classDesc += methodDesc + method.name + @"() {
-        var rec = new Miyamasu.Recorder(" + "\"" + klass.className + "\", \"" + method.name + "\"" + @");
         var instance = new " + klass.className + @"();
-        instance.rec = rec;
+        instance.SetInfo(" + "\"" + klass.className + "\", \"" + method.name + "\"" + @");
         " + SetupDesc(klass.setupMethod) + @"
         var startDate = DateTime.Now;
         " + MethodDesc(method) + @"
-        rec.MarkAsPassed((DateTime.Now - startDate).ToString());
+        instance.MarkAsPassed((DateTime.Now - startDate).ToString());
 
         if (Application.isMobilePlatform || Settings.staticSettings.slackOutputAnyway) {
             yield return instance.SendLogToSlack(" + "\"" + "device:\"" + " + SystemInfo.deviceName + " + "\" test:" + klass.className + "/" + method.name + "\"" + @", 0);
@@ -115,7 +114,7 @@ public class " + klass.className + @"_Miyamasu {";
         try {
             instance." + name + @"();
         } catch (Exception e) {
-            rec.SetupFailed(e);
+            instance.SetupFailed(e);
             throw;
         }";
         }
@@ -139,7 +138,7 @@ public class " + klass.className + @"_Miyamasu {";
         try {
             instance." + name + @"();
         } catch (Exception e) {
-            rec.TeardownFailed(e);
+            instance.TeardownFailed(e);
             throw;
         }";
         }

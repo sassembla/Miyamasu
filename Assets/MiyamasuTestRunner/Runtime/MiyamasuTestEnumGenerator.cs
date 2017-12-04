@@ -16,7 +16,7 @@ namespace Miyamasu {
         /**
             collect UnityTestAttribute attributed methods then generate coroutines from that.
         */
-        public static Func<IEnumerator>[] TestMethodEnums () {
+        public static Queue<Func<IEnumerator>> TestMethods () {
             var testTargetMethods = Assembly.GetExecutingAssembly().
                 GetTypes().SelectMany(t => t.GetMethods()).
                 Where(method => 0 < method.GetCustomAttributes(typeof(UnityTestAttribute), false).Length).ToArray();
@@ -45,9 +45,9 @@ namespace Miyamasu {
                     }
                     return enumFuncList;
                 }
-            ).ToArray();
+            );
 
-            return enumFuncArray;
+            return new Queue<Func<IEnumerator>>(enumFuncArray);
         }
 
         /**
@@ -59,9 +59,6 @@ namespace Miyamasu {
             cor = methodInfo.Invoke(instance, null) as IEnumerator;
             
             yield return cor;
-
-            // テストが無事に成功した場合、ここに来る。
-            Debug.Log("methodInfo:" + methodInfo.Name + " isStoppedByFail:" + Recorder.isStoppedByFail);
         }
     }
 }

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -14,31 +15,57 @@ using UnityEngine.Networking;
 /**
     NUnitをラップしつつなおかつログ出力を行うラップ部。
     coroutineからの復帰が可能な形でWaitUntilが実装されている。
+
+    このクラスを拡張したクラスでテストを書くことによって、自然とWaitUntilやAreEqなどが使える。
  */
 namespace Miyamasu {
+    [Serializable] public class RunnerSettings {
+		[SerializeField] public bool runOnPlay = true;
+		[SerializeField] public string slackToken = string.Empty;
+		[SerializeField] public string slackChannelName = string.Empty;
+        [SerializeField] public bool slackOutputAnyway = false;
+	}
+    
     public class MiyamasuTestRunner : Assert {
-        public Recorder rec;
+
+        public string className {private set; get;}
+        public string methodName {private set; get;}
+        
+        public void SetInfo (string className, string methodName) {
+            this.className = className;
+            this.methodName = methodName;
+        }
 
         public _WaitUntil WaitUntil (Func<bool> assert, Action onTimeout, double sec=5.0) {
-            return new _WaitUntil(assert, onTimeout, sec, rec);
+            return new _WaitUntil(assert, onTimeout, sec, this);
         }
 
-        public _SendLog SendLogToSlack (string message, int type) {
-            return new _SendLog(message, type);
+        public static Func<string, int, CustomYieldInstruction> SendLogFunc;
+        public CustomYieldInstruction SendLogToSlack (string message, int type) {
+            if (SendLogFunc != null) {
+                return SendLogFunc(message, type);
+            } else {
+                return Empty();
+            }
         }
 
-        public _SendScreenshot SendScreenshotToSlack (string message) {
-            return new _SendScreenshot(message);
+        public static Func<string, CustomYieldInstruction> SendScreenshotFunc;
+        public CustomYieldInstruction SendScreenshotToSlack (string message) {
+            if (SendScreenshotFunc != null) {
+                return SendScreenshotFunc(message);
+            } else {
+                return Empty();
+            }
         }
 
         public new void AreEqual(object expected, object actual) {
-            rec.MarkAsAssertionFailed(() => Assert.AreEqual(expected, actual));
+            MarkAsAssertionFailed(() => Assert.AreEqual(expected, actual));
         }
         public new void AreEqual(object expected, object actual, string message, params object[] args) {
-            rec.MarkAsAssertionFailed(() => Assert.AreEqual(expected, actual, message, args));
+            MarkAsAssertionFailed(() => Assert.AreEqual(expected, actual, message, args));
         }
         public new void AreEqual(double expected, double? actual, double delta) {
-            rec.MarkAsAssertionFailed(() => Assert.AreEqual(expected, actual, delta));
+            MarkAsAssertionFailed(() => Assert.AreEqual(expected, actual, delta));
         }
         // public new void AreEqual(double expected, double? actual, double delta, string message, params object[] args) {
         //     AreEqual(double expected, double? actual, double delta, string message, params object[] args)
@@ -105,20 +132,20 @@ namespace Miyamasu {
         // }
         public new bool Equals(object a, object b) {
             var result = false;
-            rec.MarkAsAssertionFailed(() => {
+            MarkAsAssertionFailed(() => {
                 result = Assert.Equals(a, b);
             });
             return result;
         }
         public new void Fail(string message, params object[] args) {
-            rec.MarkAsAssertionFailed(() => Assert.Fail(message, args));
+            MarkAsAssertionFailed(() => Assert.Fail(message, args));
             
         }
         public new void Fail(string message) {
-            rec.MarkAsAssertionFailed(() => Assert.Fail(message));
+            MarkAsAssertionFailed(() => Assert.Fail(message));
         }
         public new void Fail() {
-            rec.MarkAsAssertionFailed(() => Assert.Fail());
+            MarkAsAssertionFailed(() => Assert.Fail());
         }
         // public new void False(bool? condition, string message, params object[] args) {
         //     False(bool? condition, string message, params object[] args)
@@ -214,139 +241,139 @@ namespace Miyamasu {
         //     GreaterOrEqual(float arg1, float arg2, string message, params object[] args)
         // }
         public new void GreaterOrEqual(IComparable arg1, IComparable arg2) {
-            rec.MarkAsAssertionFailed(() => GreaterOrEqual(arg1, arg2));
+            MarkAsAssertionFailed(() => GreaterOrEqual(arg1, arg2));
         }
         public new void GreaterOrEqual(float arg1, float arg2) {
-            rec.MarkAsAssertionFailed(() => GreaterOrEqual(arg1, arg2));
+            MarkAsAssertionFailed(() => GreaterOrEqual(arg1, arg2));
         }
         public new void GreaterOrEqual(IComparable arg1, IComparable arg2, string message, params object[] args) {
-            rec.MarkAsAssertionFailed(() => GreaterOrEqual(arg1, arg2, message, args));
+            MarkAsAssertionFailed(() => GreaterOrEqual(arg1, arg2, message, args));
         }
         public new void GreaterOrEqual(double arg1, double arg2) {
-            rec.MarkAsAssertionFailed(() => GreaterOrEqual(arg1, arg2));
+            MarkAsAssertionFailed(() => GreaterOrEqual(arg1, arg2));
         }
         public new void GreaterOrEqual(uint arg1, uint arg2) {
-            rec.MarkAsAssertionFailed(() => GreaterOrEqual(arg1, arg2));
+            MarkAsAssertionFailed(() => GreaterOrEqual(arg1, arg2));
         }
         public new void Ignore() {
-            rec.MarkAsAssertionFailed(() => Ignore());
+            MarkAsAssertionFailed(() => Ignore());
         }
         public new void Ignore(string message) {
-            rec.MarkAsAssertionFailed(() => Ignore(message));
+            MarkAsAssertionFailed(() => Ignore(message));
         }
         public new void Ignore(string message, params object[] args) {
-            rec.MarkAsAssertionFailed(() => Ignore(message, args));
+            MarkAsAssertionFailed(() => Ignore(message, args));
         }
         public new void Inconclusive(string message, params object[] args) {
-            rec.MarkAsAssertionFailed(() => Inconclusive(message, args));
+            MarkAsAssertionFailed(() => Inconclusive(message, args));
         }
         public new void Inconclusive() {
-            rec.MarkAsAssertionFailed(() => Inconclusive());
+            MarkAsAssertionFailed(() => Inconclusive());
         }
         public new void Inconclusive(string message) {
-            rec.MarkAsAssertionFailed(() => Inconclusive(message));
+            MarkAsAssertionFailed(() => Inconclusive(message));
         }
         public new void IsAssignableFrom<TExpected>(object actual) {
-            rec.MarkAsAssertionFailed(() => IsAssignableFrom<TExpected>(actual));
+            MarkAsAssertionFailed(() => IsAssignableFrom<TExpected>(actual));
         }
         public new void IsAssignableFrom<TExpected>(object actual, string message, params object[] args) {
-            rec.MarkAsAssertionFailed(() => IsAssignableFrom<TExpected>(actual, message, args));
+            MarkAsAssertionFailed(() => IsAssignableFrom<TExpected>(actual, message, args));
         }
         public new void IsAssignableFrom(Type expected, object actual) {
-            rec.MarkAsAssertionFailed(() => IsAssignableFrom(expected, actual));
+            MarkAsAssertionFailed(() => IsAssignableFrom(expected, actual));
         }
         public new void IsAssignableFrom(Type expected, object actual, string message, params object[] args) {
-            rec.MarkAsAssertionFailed(() => IsAssignableFrom(expected, actual, message, args));
+            MarkAsAssertionFailed(() => IsAssignableFrom(expected, actual, message, args));
         }
         public new void IsEmpty(IEnumerable collection) {
-            rec.MarkAsAssertionFailed(() => IsEmpty(collection));
+            MarkAsAssertionFailed(() => IsEmpty(collection));
         }
         public new void IsEmpty(IEnumerable collection, string message, params object[] args) {
-            rec.MarkAsAssertionFailed(() => IsEmpty(collection, message, args));
+            MarkAsAssertionFailed(() => IsEmpty(collection, message, args));
         }
         public new void IsEmpty(string aString, string message, params object[] args) {
-            rec.MarkAsAssertionFailed(() => IsEmpty(aString, message, args));
+            MarkAsAssertionFailed(() => IsEmpty(aString, message, args));
         }
         public new void IsEmpty(string aString) {
-            rec.MarkAsAssertionFailed(() => IsEmpty(aString));
+            MarkAsAssertionFailed(() => IsEmpty(aString));
         }
         public new void IsFalse(bool? condition, string message, params object[] args) {
-            rec.MarkAsAssertionFailed(() => IsFalse(condition, message, args));
+            MarkAsAssertionFailed(() => IsFalse(condition, message, args));
         }
         public new void IsFalse(bool condition, string message, params object[] args) {
-            rec.MarkAsAssertionFailed(() => IsFalse(condition, message, args));
+            MarkAsAssertionFailed(() => IsFalse(condition, message, args));
         }
         public new void IsFalse(bool? condition) {
-            rec.MarkAsAssertionFailed(() => IsFalse(condition));
+            MarkAsAssertionFailed(() => IsFalse(condition));
         }
         public new void IsFalse(bool condition) {
-            rec.MarkAsAssertionFailed(() => IsFalse(condition));
+            MarkAsAssertionFailed(() => IsFalse(condition));
         }
         public new void IsInstanceOf(Type expected, object actual, string message, params object[] args) {
-            rec.MarkAsAssertionFailed(() => IsInstanceOf(expected, actual, message, args));
+            MarkAsAssertionFailed(() => IsInstanceOf(expected, actual, message, args));
         }
         public new void IsInstanceOf<TExpected>(object actual, string message, params object[] args) {
-            rec.MarkAsAssertionFailed(() => IsInstanceOf<TExpected>(actual, message, args));
+            MarkAsAssertionFailed(() => IsInstanceOf<TExpected>(actual, message, args));
         }
         public new void IsInstanceOf(Type expected, object actual) {
-            rec.MarkAsAssertionFailed(() => IsInstanceOf(expected, actual));
+            MarkAsAssertionFailed(() => IsInstanceOf(expected, actual));
         }
         public new void IsInstanceOf<TExpected>(object actual) {
-            rec.MarkAsAssertionFailed(() => IsInstanceOf<TExpected>(actual));
+            MarkAsAssertionFailed(() => IsInstanceOf<TExpected>(actual));
         }
         public new void IsNaN(double aDouble, string message, params object[] args) {
-            rec.MarkAsAssertionFailed(() => IsNaN(aDouble, message, args));
+            MarkAsAssertionFailed(() => IsNaN(aDouble, message, args));
         }
         public new void IsNaN(double aDouble) {
-            rec.MarkAsAssertionFailed(() => IsNaN(aDouble));
+            MarkAsAssertionFailed(() => IsNaN(aDouble));
         }
         public new void IsNaN(double? aDouble, string message, params object[] args) {
-            rec.MarkAsAssertionFailed(() => IsNaN(aDouble, message, args));
+            MarkAsAssertionFailed(() => IsNaN(aDouble, message, args));
         }
         public new void IsNaN(double? aDouble) {
-            rec.MarkAsAssertionFailed(() => IsNaN(aDouble));
+            MarkAsAssertionFailed(() => IsNaN(aDouble));
         }
         public new void IsNotAssignableFrom(Type expected, object actual, string message, params object[] args) {
-            rec.MarkAsAssertionFailed(() => IsNotAssignableFrom(expected, actual, message, args));
+            MarkAsAssertionFailed(() => IsNotAssignableFrom(expected, actual, message, args));
         }
         public new void IsNotAssignableFrom(Type expected, object actual) {
-            rec.MarkAsAssertionFailed(() => IsNotAssignableFrom(expected, actual));
+            MarkAsAssertionFailed(() => IsNotAssignableFrom(expected, actual));
         }
         public new void IsNotAssignableFrom<TExpected>(object actual, string message, params object[] args) {
-            rec.MarkAsAssertionFailed(() => IsNotAssignableFrom<TExpected>(actual, message, args));
+            MarkAsAssertionFailed(() => IsNotAssignableFrom<TExpected>(actual, message, args));
         }
         public new void IsNotAssignableFrom<TExpected>(object actual) {
-            rec.MarkAsAssertionFailed(() => IsNotAssignableFrom<TExpected>(actual));
+            MarkAsAssertionFailed(() => IsNotAssignableFrom<TExpected>(actual));
         }
         public new void IsNotEmpty(IEnumerable collection, string message, params object[] args) {
-            rec.MarkAsAssertionFailed(() => Assert.IsNotEmpty(collection, message, args));
+            MarkAsAssertionFailed(() => Assert.IsNotEmpty(collection, message, args));
         }
         public new void IsNotEmpty(string aString) {
-            rec.MarkAsAssertionFailed(() => Assert.IsNotEmpty(aString));
+            MarkAsAssertionFailed(() => Assert.IsNotEmpty(aString));
         }
         public new void IsNotEmpty(IEnumerable collection) {
-            rec.MarkAsAssertionFailed(() => Assert.IsNotEmpty(collection));
+            MarkAsAssertionFailed(() => Assert.IsNotEmpty(collection));
         }
         public new void IsNotEmpty(string aString, string message, params object[] args) {
-            rec.MarkAsAssertionFailed(() => Assert.IsNotEmpty(aString, message, args));
+            MarkAsAssertionFailed(() => Assert.IsNotEmpty(aString, message, args));
         }
         public new void IsNotInstanceOf(Type expected, object actual, string message, params object[] args) {
-            rec.MarkAsAssertionFailed(() => Assert.IsNotInstanceOf(expected, actual, message, args));
+            MarkAsAssertionFailed(() => Assert.IsNotInstanceOf(expected, actual, message, args));
         }
         public new void IsNotInstanceOf(Type expected, object actual) {
-            rec.MarkAsAssertionFailed(() => Assert.IsNotInstanceOf(expected, actual));
+            MarkAsAssertionFailed(() => Assert.IsNotInstanceOf(expected, actual));
         }
         public new void IsNotInstanceOf<TExpected>(object actual, string message, params object[] args) {
-            rec.MarkAsAssertionFailed(() => Assert.IsNotInstanceOf<TExpected>(actual, message, args));
+            MarkAsAssertionFailed(() => Assert.IsNotInstanceOf<TExpected>(actual, message, args));
         }
         public new void IsNotInstanceOf<TExpected>(object actual) {
-            rec.MarkAsAssertionFailed(() => Assert.IsNotInstanceOf<TExpected>(actual));
+            MarkAsAssertionFailed(() => Assert.IsNotInstanceOf<TExpected>(actual));
         }
         public new void IsNotNull(object anObject, string message, params object[] args) {
-            rec.MarkAsAssertionFailed(() => Assert.IsNotNull(anObject, message, args));
+            MarkAsAssertionFailed(() => Assert.IsNotNull(anObject, message, args));
         }
         public new void IsNotNull(object anObject) {
-            rec.MarkAsAssertionFailed(() => Assert.IsNotNull(anObject));
+            MarkAsAssertionFailed(() => Assert.IsNotNull(anObject));
         }
         // public new void IsNull(object anObject, string message, params object[] args) {
         //     IsNull(object anObject, string message, params object[] args)
@@ -613,103 +640,103 @@ namespace Miyamasu {
         //     ReferenceEquals(object a, object b)
         // }
         public new void That(TestDelegate code, IResolveConstraint constraint) {
-            rec.MarkAsAssertionFailed(() => Assert.That(code, constraint));
+            MarkAsAssertionFailed(() => Assert.That(code, constraint));
         }
         public new void That(bool condition, Func<string> getExceptionMessage) {
-            rec.MarkAsAssertionFailed(() => Assert.That(condition, getExceptionMessage));
+            MarkAsAssertionFailed(() => Assert.That(condition, getExceptionMessage));
         }
         public new void That(bool condition) {
-            rec.MarkAsAssertionFailed(() => Assert.That(condition));
+            MarkAsAssertionFailed(() => Assert.That(condition));
         }
         public new void That<TActual>(TActual actual, IResolveConstraint expression, Func<string> getExceptionMessage) {
-            rec.MarkAsAssertionFailed(() => Assert.That<TActual>(actual, expression, getExceptionMessage));
+            MarkAsAssertionFailed(() => Assert.That<TActual>(actual, expression, getExceptionMessage));
         }
         public new void That<TActual>(TActual actual, IResolveConstraint expression, string message, params object[] args) {
-            rec.MarkAsAssertionFailed(() => Assert.That<TActual>(actual, expression, message, args));
+            MarkAsAssertionFailed(() => Assert.That<TActual>(actual, expression, message, args));
         }
         public new void That<TActual>(TActual actual, IResolveConstraint expression) {
-            rec.MarkAsAssertionFailed(() => Assert.That<TActual>(actual, expression));
+            MarkAsAssertionFailed(() => Assert.That<TActual>(actual, expression));
         }
         public new void That(TestDelegate code, IResolveConstraint constraint, Func<string> getExceptionMessage) {
-            rec.MarkAsAssertionFailed(() => Assert.That(code, constraint, getExceptionMessage));
+            MarkAsAssertionFailed(() => Assert.That(code, constraint, getExceptionMessage));
         }
         public new void That(Func<bool> condition) {
-            rec.MarkAsAssertionFailed(() => Assert.That(condition));
+            MarkAsAssertionFailed(() => Assert.That(condition));
         }
         public new void That(TestDelegate code, IResolveConstraint constraint, string message, params object[] args) {
-            rec.MarkAsAssertionFailed(() => Assert.That(code, constraint, message, args));
+            MarkAsAssertionFailed(() => Assert.That(code, constraint, message, args));
         }
         public new void That(Func<bool> condition, Func<string> getExceptionMessage) {
-            rec.MarkAsAssertionFailed(() => Assert.That(condition, getExceptionMessage));
+            MarkAsAssertionFailed(() => Assert.That(condition, getExceptionMessage));
         }
         public new void That<TActual>(ActualValueDelegate<TActual> del, IResolveConstraint expr) {
-            rec.MarkAsAssertionFailed(() => Assert.That<TActual>(del, expr));
+            MarkAsAssertionFailed(() => Assert.That<TActual>(del, expr));
         }
         public new void That<TActual>(ActualValueDelegate<TActual> del, IResolveConstraint expr, string message, params object[] args) {
-            rec.MarkAsAssertionFailed(() => Assert.That<TActual>(del, expr, message, args));
+            MarkAsAssertionFailed(() => Assert.That<TActual>(del, expr, message, args));
         }
         public new void That<TActual>(ActualValueDelegate<TActual> del, IResolveConstraint expr, Func<string> getExceptionMessage) {
-            rec.MarkAsAssertionFailed(() => Assert.That(del, expr, getExceptionMessage));
+            MarkAsAssertionFailed(() => Assert.That(del, expr, getExceptionMessage));
         }
         public new void That(bool condition, string message, params object[] args) {
-            rec.MarkAsAssertionFailed(() => Assert.That(condition, message, args));
+            MarkAsAssertionFailed(() => Assert.That(condition, message, args));
         }
         public new void That(Func<bool> condition, string message, params object[] args) {
-            rec.MarkAsAssertionFailed(() => Assert.That(condition, message, args));
+            MarkAsAssertionFailed(() => Assert.That(condition, message, args));
         }
         public new void True(bool? condition) {
-            rec.MarkAsAssertionFailed(() => Assert.True(condition));
+            MarkAsAssertionFailed(() => Assert.True(condition));
         }
         public new void True(bool condition, string message, params object[] args) {
-            rec.MarkAsAssertionFailed(() => Assert.True(condition, message, args));
+            MarkAsAssertionFailed(() => Assert.True(condition, message, args));
         }
         public new void True(bool? condition, string message, params object[] args) {
-            rec.MarkAsAssertionFailed(() => Assert.True(condition, message, args));
+            MarkAsAssertionFailed(() => Assert.True(condition, message, args));
         }
         public new void True(bool condition) {
-            rec.MarkAsAssertionFailed(() => Assert.True(condition));
+            MarkAsAssertionFailed(() => Assert.True(condition));
         }
         public new void Zero(int actual) {
-            rec.MarkAsAssertionFailed(() => Assert.Zero(actual));
+            MarkAsAssertionFailed(() => Assert.Zero(actual));
         }
         public new void Zero(int actual, string message, params object[] args) {
-            rec.MarkAsAssertionFailed(() => Assert.Zero(actual, message, args));
+            MarkAsAssertionFailed(() => Assert.Zero(actual, message, args));
         }
         public new void Zero(uint actual) {
-            rec.MarkAsAssertionFailed(() => Assert.Zero(actual));
+            MarkAsAssertionFailed(() => Assert.Zero(actual));
         }
         public new void Zero(uint actual, string message, params object[] args) {
-            rec.MarkAsAssertionFailed(() => Assert.Zero(actual, message, args));
+            MarkAsAssertionFailed(() => Assert.Zero(actual, message, args));
         }
         public new void Zero(long actual) {
-            rec.MarkAsAssertionFailed(() => Assert.Zero(actual));
+            MarkAsAssertionFailed(() => Assert.Zero(actual));
         }
         public new void Zero(ulong actual) {
-            rec.MarkAsAssertionFailed(() => Assert.Zero(actual));
+            MarkAsAssertionFailed(() => Assert.Zero(actual));
         }
         public new void Zero(ulong actual, string message, params object[] args) {
-            rec.MarkAsAssertionFailed(() => Assert.Zero(actual, message, args));
+            MarkAsAssertionFailed(() => Assert.Zero(actual, message, args));
         }
         public new void Zero(decimal actual) {
-            rec.MarkAsAssertionFailed(() => Assert.Zero(actual));
+            MarkAsAssertionFailed(() => Assert.Zero(actual));
         }
         public new void Zero(decimal actual, string message, params object[] args) {
-            rec.MarkAsAssertionFailed(() => Assert.Zero(actual, message, args));
+            MarkAsAssertionFailed(() => Assert.Zero(actual, message, args));
         }
         public new void Zero(double actual) {
-            rec.MarkAsAssertionFailed(() => Assert.Zero(actual));
+            MarkAsAssertionFailed(() => Assert.Zero(actual));
         }
         public new void Zero(double actual, string message, params object[] args) {
-            rec.MarkAsAssertionFailed(() => Assert.Zero(actual, message, args));
+            MarkAsAssertionFailed(() => Assert.Zero(actual, message, args));
         }
         public new void Zero(float actual) {
-            rec.MarkAsAssertionFailed(() => Assert.Zero(actual));
+            MarkAsAssertionFailed(() => Assert.Zero(actual));
         }
         public new void Zero(long actual, string message, params object[] args) {
-            rec.MarkAsAssertionFailed(() => Assert.Zero(actual, message, args));
+            MarkAsAssertionFailed(() => Assert.Zero(actual, message, args));
         }
         public new void Zero(float actual, string message, params object[] args) {
-            rec.MarkAsAssertionFailed(() => Assert.Zero(actual, message, args));
+            MarkAsAssertionFailed(() => Assert.Zero(actual, message, args));
         }
         
         public class _WaitUntil : CustomYieldInstruction {
@@ -719,11 +746,11 @@ namespace Miyamasu {
 
             private readonly IEnumerator t;
 
-            public _WaitUntil (Func<bool> assert, Action onTimeout, double sec, Recorder rec) {
+            public _WaitUntil (Func<bool> assert, Action onTimeout, double sec, MiyamasuTestRunner runner) {
                 this.assert = assert;
                 this.onTimeout = onTimeout;
                 this.timelimit = (DateTime.Now + TimeSpan.FromSeconds(sec)).Ticks;
-                this.t = _WaitCor(rec);
+                this.t = _WaitCor(runner);
             }
             
             public override bool keepWaiting {
@@ -732,7 +759,7 @@ namespace Miyamasu {
                 }
             }
 
-            private IEnumerator _WaitCor (Recorder rec) {
+            private IEnumerator _WaitCor (MiyamasuTestRunner runner) {
                 while (true) {
                     if (assert()) {
                         // done.
@@ -743,7 +770,7 @@ namespace Miyamasu {
                         try {
                             onTimeout();
                         } catch (Exception e) {
-                            rec.MarkAsTimeout(e);
+                            runner.MarkAsTimeout(e);
                             throw;
                         }
 
@@ -755,237 +782,144 @@ namespace Miyamasu {
             }
         }
 
-        // send log to slack.
-        public class _SendLog : CustomYieldInstruction {
-            private readonly IEnumerator t;
-            public _SendLog (string message, int type) {
-                this.t = _WaitCor(message, type);
-            }
+        public void SetupFailed (Exception e) {
+            WriteReport(new string[]{className, methodName}, ReportType.AssertionFailed, string.Empty, e);
+            
+        }
 
-            public override bool keepWaiting {
-                get {
-                    return t.MoveNext();
-                }
-            }
+        public void TeardownFailed (Exception e) {
+            WriteReport(new string[]{className, methodName}, ReportType.AssertionFailed, string.Empty, e);
+            
+        }
 
-            private class Message {
-                public string text;
-                public string channel;
-                public Message (string message, string channelName) {
-                    this.text = message;
-                    this.channel = channelName;
-                }
-            }
-
-            private IEnumerator _WaitCor (string message, int type) {
-
-                if (string.IsNullOrEmpty(Recorder.settings.slackToken)) {
-                    yield break;
-                }
-                if (string.IsNullOrEmpty(Recorder.settings.slackChannelName)) {
-                    yield break;
-                }
-
-                /*
-                    curl -X POST -H 'Authorization: Bearer xoxp-XXXX' -H 'Content-type: application/json' 
-                    --data '{"channel":"miyamasu","text":"I hope"}' https://slack.com/api/chat.postMessage
-                 */
-                var uri = "https://slack.com/api/chat.postMessage";
+        public void MarkAsAssertionFailed (Action act) {
+            try {
+                act();
+            } catch (Exception e) {
+                // tips1 このログメッセージ自体をここで発行することによって、Unityコンソール上からクリックした時にダイレクトにコードに飛ぶことができる。
+                // このクラスをdll化していることに起因する。
                 
-                var data = JsonUtility.ToJson(new Message(message, Recorder.settings.slackChannelName));
-                var http = new UnityWebRequest(uri, "POST");
+                // tips2 特に次の行は、Assertionのログを出し、その直後にログファイルを漁ることで、このメソッド自体を呼んだファイルの行の特定を行なっている。
+                Debug.LogError("Assertion failed. ");
+
+                var lineNumber = GetLineNumber(methodName);
+                Debug.LogError("    class:" + className + " method:" + methodName + " line:" + lineNumber + " e:" + e);
+
+                WriteReport(new string[]{className, methodName, lineNumber}, ReportType.AssertionFailed, string.Empty, e);
+
                 
-                http.SetRequestHeader("Authorization", "Bearer " + Recorder.settings.slackToken);
-                http.SetRequestHeader("Content-type", "application/json; charset=utf-8");
-                var byteData = Encoding.UTF8.GetBytes(data);
-                http.uploadHandler = new UploadHandlerRaw(byteData);
-
-                // http.downloadHandler = new DownloadHandlerBuffer();
-
-                var p = http.Send();
-
-                while (!p.isDone) {
-					yield return null;
-                }
-
-                // var error = http.error;
-                // if (!string.IsNullOrEmpty(error)) {
-                //     Debug.Log("error:" + error);
-                // }
-
-                // var code = http.responseCode;
-                // Debug.Log("code:" + code);
-
-                // var responseData = System.Text.Encoding.UTF8.GetString(http.downloadHandler.data);
-                // Debug.Log("responseData:" + responseData);
+                throw;
             }
         }
-        
-        public class _SendScreenshot : CustomYieldInstruction {
-            private readonly IEnumerator t;
 
-            public _SendScreenshot (string message) {
-                t = _WaitCor(message);
-            }
+        /**
+            ログから特定のメソッドの実行記録のうち最後のものを取得してその行番号を取り出す
+         */
+        public static string GetLineNumber (string methodName) {
+            var targetLineHeader = "<" + methodName + ">";
+            
+            var targetLine = string.Empty;
+            
+            
+            if (Application.isEditor) {
+                var logPath = string.Empty;
 
-            public override bool keepWaiting {
-                get {
-                    return t.MoveNext();
-                }
-            }
-
-            private IEnumerator _WaitCor (string message) {
-                if (string.IsNullOrEmpty(Recorder.settings.slackToken)) {
-                    yield break;
-                }
-                if (string.IsNullOrEmpty(Recorder.settings.slackChannelName)) {
-                    yield break;
-                }
-
-                var fileName = message.Replace(" ", "_") + "_screenshot_" + DateTime.Now.ToString().Replace(":", "_").Replace(" ", "_").Replace("/", "_");
-                var basePath = Path.Combine(Application.persistentDataPath, fileName);
-                
-                if (Application.isMobilePlatform) {
-                    Application.CaptureScreenshot(fileName);// supersize = 0.
+                if (Application.platform == RuntimePlatform.WindowsEditor) {
+                    logPath = "C:/Users/" + Environment.UserName + "/AppData/Local/Unity/Editor/Editor.log";
+                } else if (Application.platform == RuntimePlatform.OSXEditor) {
+                    logPath = "/Users/" + Environment.UserName + "/Library/Logs/Unity/Editor.log";
                 } else {
-                    Application.CaptureScreenshot(basePath);// supersize = 0.
-                }
-                
-                while (!File.Exists(basePath)) {
-                    yield return null;
+                    return string.Empty;
                 }
 
-                // file found. start uploading.
-                
-                /*
-                    curl -F file=@scr.png 
-                    -F channels=#miyamasu 
-                    -F token=xoxp-XXXX 
-                    https://slack.com/api/files.upload
-                 */
-                var uri = "https://slack.com/api/files.upload";
-                
-
-                var lockObj = new object();
-
-                // ready multipart post request to slack.
-                var boundary = "---------------------------" + DateTime.Now.Ticks.ToString("x");
-                var boundarybytes = System.Text.Encoding.ASCII.GetBytes("\r\n--" + boundary + "\r\n");
-
-                var multipartFormRequest = WebRequest.Create(uri) as HttpWebRequest;
-
-                multipartFormRequest.ContentType = "multipart/form-data; boundary=" + boundary;
-                multipartFormRequest.Method = "POST";
-                multipartFormRequest.KeepAlive = true;
-                multipartFormRequest.Credentials = System.Net.CredentialCache.DefaultCredentials;
-
-                // add form parameters.
-                var formParameters = new NameValueCollection();
-                formParameters.Add("channels", "#miyamasu");
-                formParameters.Add("token", Recorder.settings.slackToken);
-                
-                
-                using (var rs = multipartFormRequest.GetRequestStream()) {
-                    var formdataTemplate = "Content-Disposition: form-data; name=\"{0}\"\r\n\r\n{1}";
-                    foreach (string key in formParameters.Keys) {
-                        rs.Write(boundarybytes, 0, boundarybytes.Length);
-                        string formitem = string.Format(formdataTemplate, key, formParameters[key]);
-                        byte[] formitembytes = System.Text.Encoding.UTF8.GetBytes(formitem);
-                        rs.Write(formitembytes, 0, formitembytes.Length);
+                using (var reader = new StreamReader(logPath)) {
+                    if (1024 < reader.BaseStream.Length) {
+                        reader.BaseStream.Seek(-1024, SeekOrigin.End);
                     }
-                    rs.Write(boundarybytes, 0, boundarybytes.Length);
-                
-                    var headerTemplate = "Content-Disposition: form-data; name=\"{0}\"; filename=\"{1}\"\r\nContent-Type: {2}\r\n\r\n";
-                    var header = string.Format(headerTemplate, "file", fileName, "image/png");
-                    var headerbytes = Encoding.UTF8.GetBytes(header);
-                    rs.Write(headerbytes, 0, headerbytes.Length);
-                    
-                    var length = 1024 * 100;// 100k
-                    var bytes = new byte[length];
 
-                    // send screenshot bytes with split by buffer size.
-                    using (var fStream = File.OpenRead(basePath)) {
-                        var continuation = true;
-                        
-                        Action onDone = () => {
-                            continuation = false;
-                        };
-
-                        // send recursive in async.
-                        SendScreenshotBytesAsync(bytes, rs, fStream, lockObj, onDone);
-
-                        while (continuation) {
-                            yield return null;
+                    string line;
+                    while ((line = reader.ReadLine()) != null) {
+                        if (line.StartsWith(targetLineHeader)) {
+                            
+                            targetLine = line;
                         }
                     }
-                    
-                    // finished to send screenshot bytes.
-                    var trailer = Encoding.ASCII.GetBytes("\r\n--" + boundary + "--\r\n");
-                    rs.Write(trailer, 0, trailer.Length);
-                }
-                
-                // remove sended file.
-                File.Delete(basePath);
-                
-                var response = multipartFormRequest.BeginGetResponse(
-                    ar => {
-                        multipartFormRequest.EndGetResponse(ar);
-                    }, 
-                    lockObj
-                );
-
-                while (!response.IsCompleted) {
-                    yield return null;
                 }
 
-                // var wresp = multipartFormRequest.GetResponse();
-                // Stream stream2 = wresp.GetResponseStream();
-                // StreamReader reader2 = new StreamReader(stream2);
-                // Debug.Log(string.Format("File uploaded, server response is: {0}", reader2.ReadToEnd()));
+                if (!string.IsNullOrEmpty(targetLine)) {
+                    var baseStr = targetLine.Substring(0, targetLine.Length - 1);
+                    var countAndOther = baseStr.Split(':');
+                    return countAndOther[countAndOther.Length-1];
+                }
             }
 
+            return "-";
+        }
 
-            private void SendScreenshotBytesAsync (byte[] bytes, Stream writeStream, FileStream readStream, object lockObj, Action onDone) {
-                var rest = readStream.Length - readStream.Position;
-                
-                var readLength = bytes.Length;
+        public void MarkAsTimeout (Exception e) {
+            WriteReport(new string[]{className, methodName}, ReportType.FailedByTimeout, string.Empty, e);
+        }
+        
+        public void MarkAsPassed (string dateDiff) {
+            var descs = dateDiff.Split(':').Where(d => d != "00").ToArray();
+            var timeDesc = string.Join(":", descs);
+            WriteReport(new string[]{className, methodName}, ReportType.Passed, timeDesc);
+            
+            // このへんで実行できると綺麗。が、内部から変えられないので、なんかハンドラを渡すのがいいか。
+            // if (Application.isMobilePlatform || Settings.staticSettings.slackOutputAnyway) {
+            //     yield return instance.SendLogToSlack("device:" + SystemInfo.deviceName + " test:SuccessSample/Same", 0);
+            // }
+        }
 
-                // use rest size if rest size is little than buffer size.
-                if (rest < bytes.Length) {
-                    readLength = (int)rest;
+        public static Action<string[], ReportType, Exception> logAct;
+
+        public void WriteReport (string[] message, ReportType type, string seconds="", Exception e=null) {
+            // write log files if editor.
+            if (Application.isEditor) {
+                using (var sw = new StreamWriter("miyamasu.log", true)) {
+                    var str = type + ":" + string.Join(" ", message);
+
+                    // 時間がセットされていれば記載
+                    if (!string.IsNullOrEmpty(seconds)) {
+                        str += " in " + seconds + " sec";
+                    }
+                    
+                    sw.WriteLine(str);
+
+                    // errorを次の行から追記
+                    if (e != null) {
+                        sw.WriteLine("  " + e);
+                    }
                 }
-
-                // read file data async.
-                readStream.BeginRead(
-                    bytes, 
-                    0, 
-                    readLength, 
-                    readAsyncResult => {
-                        readStream.EndRead(readAsyncResult);
-
-                        // write file data to server async.
-                        writeStream.BeginWrite(
-                            bytes, 
-                            0, 
-                            readLength,
-                            writeAsyncResult => {
-                                writeStream.EndWrite(writeAsyncResult);
-                                
-                                // no bytes remains.
-                                if (readStream.Length - readStream.Position == 0) {
-                                    onDone();
-                                    return;
-                                }
-
-                                // continue sending rest bytes.
-                                SendScreenshotBytesAsync(bytes, writeStream, readStream, lockObj, onDone);
-                            }, 
-                            lockObj
-                        );
-                    }, 
-                    lockObj
-                );
+            }
+            
+            if (logAct != null) {
+                logAct(message, type, e);
             }
         }
+
+
+        private CustomYieldInstruction Empty () {
+            return new EmptyInstruction();
+        }
+
+        public class EmptyInstruction : CustomYieldInstruction {
+            public override bool keepWaiting => false;
+        }
+
+
+
+    }
+
+    public enum ReportType {
+        Passed,
+
+        FailedByTimeout,
+        AssertionFailed,
+
+        Error,
+
+        SetupFailed,
+        TeardownFailed,
     }
 }
