@@ -9,7 +9,7 @@ namespace Miyamasu {
 		[SerializeField] public bool runOnPlay = true;
 		[SerializeField] public string slackToken = string.Empty;
 		[SerializeField] public string slackChannelName = string.Empty;
-        [SerializeField] public bool slackOutputAny = false;
+        [SerializeField] public bool slackOutputAnyway = false;
 	}
     
     public class Recorder {

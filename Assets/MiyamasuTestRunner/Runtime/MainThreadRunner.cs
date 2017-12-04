@@ -9,6 +9,9 @@ using UnityEngine.UI;
 using UUebView;
 
 namespace Miyamasu {
+	/**
+		running Miyamasu tests on MainThread of Unity.
+	 */
 	public class MainThreadRunner : MonoBehaviour, IUUebViewEventHandler {
 		private int index = 0;
 		private bool started;
@@ -71,17 +74,20 @@ namespace Miyamasu {
 			currentUUebViewComponent = view.GetComponent<UUebViewComponent>();
 
 			started = true;
-			yield return ContCor();
+
+			yield return RunTestCoroutines();
 		}
 
 		private List<GameObject> errorMarkOnVerticalBar;
 
 		void Update () {
+			
 			if (started && Recorder.isStoppedByFail) {
+				Debug.Log("これ直すと良さそう。");
 				Recorder.isStoppedByFail = false;
 
 				// continue test.
-				StartCoroutine(ContCor());
+				StartCoroutine(RunTestCoroutines());
 			}
 
 			if (loaded) {
@@ -101,12 +107,14 @@ namespace Miyamasu {
 			this.iEnumGens = iEnumGens;
         }
 
-		private IEnumerator ContCor () {
+		private IEnumerator RunTestCoroutines () {
 			while (index < iEnumGens.Length) {
 				yield return iEnumGens[index++]();
 			}
 
 			Debug.Log("all tests finished.");
+
+			// yield return SendLogToSlack("all tests finished.", 0);
 		}
 		
 		private bool loaded;
