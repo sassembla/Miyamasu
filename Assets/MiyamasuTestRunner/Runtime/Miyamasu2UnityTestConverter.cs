@@ -70,9 +70,6 @@ public class " + klass.className + @"_Miyamasu {";
         " + MethodDesc(method) + @"
         instance.MarkAsPassed((DateTime.Now - startDate).ToString());
 
-        if (Application.isMobilePlatform || Settings.staticSettings.slackOutputAnyway) {
-            yield return instance.SendLogToSlack(" + "\"" + "device:\"" + " + SystemInfo.deviceName + " + "\" test:" + klass.className + "/" + method.name + "\"" + @", 0);
-        }
         " + TeardownDesc(klass.teardownMethod) + @"
     }";
                 }

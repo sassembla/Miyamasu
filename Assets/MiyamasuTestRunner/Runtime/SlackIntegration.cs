@@ -25,10 +25,10 @@ namespace Miyamasu.SlackIntegration {
             }
         }
 
-        private class Message {
+        private class SlackMessage {
             public string text;
             public string channel;
-            public Message (string message, string channelName) {
+            public SlackMessage (string message, string channelName, int type) {
                 this.text = message;
                 this.channel = channelName;
             }
@@ -49,7 +49,7 @@ namespace Miyamasu.SlackIntegration {
                 */
             var uri = "https://slack.com/api/chat.postMessage";
             
-            var data = JsonUtility.ToJson(new Message(message, Settings.staticSettings.slackChannelName));
+            var data = JsonUtility.ToJson(new SlackMessage(message, Settings.staticSettings.slackChannelName, type));
             var http = new UnityWebRequest(uri, "POST");
             
             http.SetRequestHeader("Authorization", "Bearer " + Settings.staticSettings.slackToken);

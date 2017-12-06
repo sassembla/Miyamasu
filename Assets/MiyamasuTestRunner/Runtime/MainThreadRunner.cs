@@ -22,7 +22,7 @@ namespace Miyamasu {
 		private string htmlContent = @"<!DOCTYPE uuebview href='resources://Views/ConsoleTag/UUebTags'>";
 
 		IEnumerator Start () {
-			while (iEnumGens == null) {
+			while (testEnumerators == null) {
 				// wait to set enumGens;
 				yield return null;
 			}
@@ -64,27 +64,20 @@ namespace Miyamasu {
 			var scrollViewWidth = contentRect.rect.width;
 			MiyamasuTestRunner.logAct = this.AddLog;
 
+
 			var view = UUebViewComponent.GenerateSingleViewFromHTML(this.gameObject, htmlContent, new Vector2(scrollViewWidth, 100));
 			view.name = "MiyamasuRuntimeConsole";
 			view.transform.SetParent(attachTargetView.transform, false);
 
 			currentUUebViewComponent = view.GetComponent<UUebViewComponent>();
 
-			yield return RunTestCoroutines();
+			Reset(testEnumerators.Count);
+			StartCoroutine(RunTestCoroutines());
 		}
-
+		
 		private List<GameObject> errorMarkOnVerticalBar;
 
 		void Update () {
-			
-			// if (started && isStoppedByFail) {
-			// 	Debug.Log("これ直すと良さそう。");
-			// 	isStoppedByFail = false;
-
-			// 	// restart test from current.
-			// 	StartCoroutine(RunTestCoroutines());
-			// }
-
 			if (loaded) {
 				if (logList.Any()) {
 					loaded = false;
@@ -97,28 +90,55 @@ namespace Miyamasu {
 			}
 		}
 		
-		private Queue<Func<IEnumerator>> iEnumGens;
+		private Queue<Func<IEnumerator>> testEnumerators;
 		public void SetTests (Queue<Func<IEnumerator>> iEnumGens) {
-			this.iEnumGens = iEnumGens;
+			this.testEnumerators = iEnumGens;
         }
+
+		private int passed = 0;
+		private int failed = 0;
+		private int testCount;
+
+		private void Reset (int newTestCount) {
+			passed = 0;
+			failed = 0;
+			testCount = newTestCount;
+		}
 
 		private IEnumerator RunTestCoroutines () {
 			// rest: iEnumGens.Count.
 			// current: iEnumGens.Count.
 
-			while (0 < iEnumGens.Count) {
-				yield return iEnumGens.Dequeue()();
+			while (0 < testEnumerators.Count) {
+				yield return testEnumerators.Dequeue()();
 			}
-
-			yield return new SlackIntegration._SendLog("全テスト終了", 0);
 		}
 		
 		private bool loaded;
 		private List<string> logList = new List<string>();
+		
 		/**
 			this method will be called from jumper lib.
 		 */
-		public void AddLog (string[] message, ReportType type, Exception e) {
+		public void AddLog (ReportSource reportSource, ReportType type, Exception e, string seconds) {
+			if (Application.isEditor) {
+                using (var sw = new System.IO.StreamWriter("miyamasu.log", true)) {
+                    var str = type + ":" + reportSource.className + "/" + reportSource.methodName + " @" + reportSource.lineNumber;
+
+                    // 時間がセットされていれば記載
+                    if (!string.IsNullOrEmpty(seconds)) {
+                        str += " in " + seconds + " sec";
+                    }
+                    
+                    sw.WriteLine(str);
+
+                    // errorを次の行から追記
+                    if (e != null) {
+                        sw.WriteLine("  " + e);
+                    }
+                }
+            }
+
 			var icon = "pass";
 
 			switch (type) {
@@ -144,9 +164,9 @@ namespace Miyamasu {
 				}
 			}
 
-			var messageBlock = message[0] + " / " + message[1];
-			if (2 < message.Length) {
-				messageBlock += " line:" + message[2];
+			var messageBlock = reportSource.className + " / " + reportSource.methodName;
+			if (!string.IsNullOrEmpty(reportSource.lineNumber)) {
+				messageBlock += " line:" + reportSource.lineNumber;
 			}
 
 			var error = string.Empty;
@@ -163,8 +183,57 @@ namespace Miyamasu {
 					<iconbg><" + icon + @"/></iconbg>
 				</bg><br>");
 
-			// 個別のテスト結果をサーバに届けるとしたらこの辺がベスト。igniterにあったほうが楽なのでは感がある。
-			StartCoroutine(new SlackIntegration._SendLog("error:" + error, 0));
+
+			// send result to slack.
+			switch (type) {
+				case ReportType.AssertionFailed: 
+				case ReportType.FailedByTimeout: 
+				case ReportType.Error: {
+					StartCoroutine(new SlackIntegration._SendLog("device:" + SystemInfo.deviceName + " failed " + reportSource.Description() + "\n" + e.ToString(), 0));
+					break;
+				}
+				case ReportType.Passed: {
+					StartCoroutine(new SlackIntegration._SendLog("device:" + SystemInfo.deviceName + " passed " + reportSource.Description(), 0));
+					break;
+				}
+				default: {
+					// do nothing.
+					break;
+				}
+			}
+
+			// count up.
+			switch (type) {
+				case ReportType.Error:
+				case ReportType.FailedByTimeout:
+				case ReportType.AssertionFailed: {
+					failed++;
+					break;
+				}
+				case ReportType.Passed: {
+					passed++;
+					break;
+				}
+			}
+
+			if (testEnumerators.Count == 0) {
+				var reportEndCor = new SlackIntegration._SendLog("all " + testCount + " tests finished. passed:" + passed + " failed:" + failed, 0);
+				StartCoroutine(reportEndCor);
+			}
+
+			// restart test.
+			switch (type) {
+				case ReportType.AssertionFailed: 
+				case ReportType.FailedByTimeout: 
+				case ReportType.Error: {
+					StartCoroutine(RunTestCoroutines());
+					break;
+				}
+				default: {
+					// do nothing.
+					break;
+				}
+			}
 		}
 
 		private static string Base64Encode(string plainText) {
@@ -177,19 +246,16 @@ namespace Miyamasu {
 			return Encoding.UTF8.GetString(base64EncodedBytes);
 		}
 
-        void IUUebViewEventHandler.OnLoadStarted()
-        {
+        void IUUebViewEventHandler.OnLoadStarted () {
 			// throw new NotImplementedException();
         }
 
-        void IUUebViewEventHandler.OnProgress(double progress)
-        {
+        void IUUebViewEventHandler.OnProgress (double progress) {
             // throw new NotImplementedException();
         }
 
 		private List<float> onVerticalBarErrorPos = new List<float>();
-        void IUUebViewEventHandler.OnLoaded(string[] treeIds)
-        {
+        void IUUebViewEventHandler.OnLoaded (string[] treeIds) {
 			loaded = true;
 
 			if (logList.Any()) {
@@ -205,8 +271,7 @@ namespace Miyamasu {
         }
 
 		private List<GameObject> goPool = new List<GameObject>();
-        void IUUebViewEventHandler.OnUpdated(string[] newTreeIds)
-        {
+        void IUUebViewEventHandler.OnUpdated (string[] newTreeIds) {
 			loaded = true;
 			if (logList.Any()) {
 				loaded = false;
@@ -262,14 +327,12 @@ namespace Miyamasu {
 			}
 		}
 
-        void IUUebViewEventHandler.OnLoadFailed(ContentType type, int code, string reason)
-        {
+        void IUUebViewEventHandler.OnLoadFailed (ContentType type, int code, string reason) {
 			Debug.LogError("loadFailed:" + type + " code:" + code + " reason:" + reason);
         }
 
 		private InputField detailText;
-        void IUUebViewEventHandler.OnElementTapped(ContentType type, GameObject element, string param, string id)
-        {
+        void IUUebViewEventHandler.OnElementTapped (ContentType type, GameObject element, string param, string id) {
 			var e = Base64Decode(param);
 			// で、エラー詳細を表示する。
 			if (detailText == null) {
@@ -278,8 +341,7 @@ namespace Miyamasu {
 			detailText.text = e;
         }
 
-        void IUUebViewEventHandler.OnElementLongTapped(ContentType type, string param, string id)
-        {
+        void IUUebViewEventHandler.OnElementLongTapped (ContentType type, string param, string id) {
             // throw new NotImplementedException();
         }
     }

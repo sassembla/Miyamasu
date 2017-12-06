@@ -19,11 +19,30 @@ using UnityEngine.Networking;
     このクラスを拡張したクラスでテストを書くことによって、自然とWaitUntilやAreEqなどが使える。
  */
 namespace Miyamasu {
+
+    public struct ReportSource {
+        public string className;
+        public string methodName;
+        public string lineNumber;
+
+        public ReportSource (string className, string methodName, string lineNumber=null) {
+            this.className = className;
+            this.methodName = methodName;
+            this.lineNumber = lineNumber;
+        }
+
+        public string Description () {
+            var desc = "case:" + className + "/" + methodName;
+            if (!string.IsNullOrEmpty(lineNumber)) {
+                desc += " lineNumber:" + lineNumber;
+            }
+            return desc;
+        }
+    }
     [Serializable] public class RunnerSettings {
 		[SerializeField] public bool runOnPlay = true;
 		[SerializeField] public string slackToken = string.Empty;
 		[SerializeField] public string slackChannelName = string.Empty;
-        [SerializeField] public bool slackOutputAnyway = false;
 	}
     
     public class MiyamasuTestRunner : Assert {
@@ -783,12 +802,12 @@ namespace Miyamasu {
         }
 
         public void SetupFailed (Exception e) {
-            WriteReport(new string[]{className, methodName}, ReportType.AssertionFailed, string.Empty, e);
+            WriteReport(new ReportSource(className, methodName), ReportType.AssertionFailed, string.Empty, e);
             
         }
 
         public void TeardownFailed (Exception e) {
-            WriteReport(new string[]{className, methodName}, ReportType.AssertionFailed, string.Empty, e);
+            WriteReport(new ReportSource(className, methodName), ReportType.AssertionFailed, string.Empty, e);
             
         }
 
@@ -805,7 +824,7 @@ namespace Miyamasu {
                 var lineNumber = GetLineNumber(methodName);
                 Debug.LogError("    class:" + className + " method:" + methodName + " line:" + lineNumber + " e:" + e);
 
-                WriteReport(new string[]{className, methodName, lineNumber}, ReportType.AssertionFailed, string.Empty, e);
+                WriteReport(new ReportSource(className, methodName, lineNumber), ReportType.AssertionFailed, string.Empty, e);
 
                 
                 throw;
@@ -857,44 +876,20 @@ namespace Miyamasu {
         }
 
         public void MarkAsTimeout (Exception e) {
-            WriteReport(new string[]{className, methodName}, ReportType.FailedByTimeout, string.Empty, e);
+            WriteReport(new ReportSource(className, methodName), ReportType.FailedByTimeout, string.Empty, e);
         }
         
         public void MarkAsPassed (string dateDiff) {
             var descs = dateDiff.Split(':').Where(d => d != "00").ToArray();
             var timeDesc = string.Join(":", descs);
-            WriteReport(new string[]{className, methodName}, ReportType.Passed, timeDesc);
-            
-            // このへんで実行できると綺麗。が、内部から変えられないので、なんかハンドラを渡すのがいいか。
-            // if (Application.isMobilePlatform || Settings.staticSettings.slackOutputAnyway) {
-            //     yield return instance.SendLogToSlack("device:" + SystemInfo.deviceName + " test:SuccessSample/Same", 0);
-            // }
+            WriteReport(new ReportSource(className, methodName), ReportType.Passed, timeDesc);
         }
 
-        public static Action<string[], ReportType, Exception> logAct;
+        public static Action<ReportSource, ReportType, Exception, string> logAct;
 
-        public void WriteReport (string[] message, ReportType type, string seconds="", Exception e=null) {
-            // write log files if editor.
-            if (Application.isEditor) {
-                using (var sw = new StreamWriter("miyamasu.log", true)) {
-                    var str = type + ":" + string.Join(" ", message);
-
-                    // 時間がセットされていれば記載
-                    if (!string.IsNullOrEmpty(seconds)) {
-                        str += " in " + seconds + " sec";
-                    }
-                    
-                    sw.WriteLine(str);
-
-                    // errorを次の行から追記
-                    if (e != null) {
-                        sw.WriteLine("  " + e);
-                    }
-                }
-            }
-            
+        public void WriteReport (ReportSource message, ReportType type, string seconds="", Exception e=null) {
             if (logAct != null) {
-                logAct(message, type, e);
+                logAct(message, type, e, seconds);
             }
         }
 
