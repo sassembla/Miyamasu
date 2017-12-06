@@ -6,14 +6,22 @@ and this project adheres to [Romantic Versioning](http://blog.legacyteam.info/20
 
 ## [Unreleased]
 
+## [0.6.2] - 2017/12/06
+### Feature
+- add slack intengration.
+
+### Fixed
+- removed unnecessary generated test files from unitypackage.
+
 ## [0.6.1] - 2017/09/18
-## Fixed
+### Fixed
 - text log style was broken. fixed.
 
-## [0.6.0] - 2017-09-16
+## [0.6.0] - 2017/09/16
 ### Changed
 - Adopt UnityTest for Unity5.6~.
 
-[Unreleased]: https://github.com/sassembla/Miyamasu/compare/0.6.1...HEAD
+[Unreleased]: https://github.com/sassembla/Miyamasu/compare/0.6.2...HEAD
+[0.6.2]: https://github.com/sassembla/Miyamasu/compare/0.6.1...0.6.2
 [0.6.1]: https://github.com/sassembla/Miyamasu/compare/0.6.0...0.6.1
 [0.6.0]: https://github.com/sassembla/Miyamasu/compare/0.6.0...0.6.0
