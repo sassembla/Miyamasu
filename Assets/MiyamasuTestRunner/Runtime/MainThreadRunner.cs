@@ -22,20 +22,17 @@ namespace Miyamasu {
 		private string htmlContent = @"<!DOCTYPE uuebview href='resources://Views/ConsoleTag/UUebTags'>";
 
 		IEnumerator Start () {
+			var scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+			if (scene.name.StartsWith("InitTestScene") && "InitTestScene".Length < scene.name.Length) {
+				Destroy(this);
+				yield break;
+			}
+			
 			while (testEnumerators == null) {
 				// wait to set enumGens;
 				yield return null;
 			}
 			
-			// wait for check UnityTest is running or not.
-			yield return new WaitForSeconds(1);
-			
-			Debug.Log("Editorの一覧からテストを実行した場合にテストを開始すると重複するので、停止させる、みたいな奴。");
-			// if (isRunning) {
-			// 	Destroy(this);
-			// 	yield break;
-			// }
-
 			var canvasCor = Resources.LoadAsync<GameObject>("MiyamasuPrefabs/MiyamasuCanvas");
 
 			while (!canvasCor.isDone) {
@@ -174,7 +171,6 @@ namespace Miyamasu {
 				var id = Guid.NewGuid().ToString();
 				error =  @" button='true' src='" + Base64Encode(e.ToString()) + @"' id='" + id + @"'";
 			}
-			
 			logList.Add(@"
 				<bg" + error + @">
 					<textbg>
@@ -183,17 +179,18 @@ namespace Miyamasu {
 					<iconbg><" + icon + @"/></iconbg>
 				</bg><br>");
 
+			var coroutines = new List<IEnumerator>();
 
 			// send result to slack.
 			switch (type) {
 				case ReportType.AssertionFailed: 
 				case ReportType.FailedByTimeout: 
 				case ReportType.Error: {
-					StartCoroutine(new SlackIntegration._SendLog("device:" + SystemInfo.deviceName + " failed " + reportSource.Description() + "\n" + e.ToString(), 0));
+					coroutines.Add(new SlackIntegration._SendLog("device:" + SystemInfo.deviceName + " failed " + reportSource.Description() + "\n" + e.ToString(), 0));
 					break;
 				}
 				case ReportType.Passed: {
-					StartCoroutine(new SlackIntegration._SendLog("device:" + SystemInfo.deviceName + " passed " + reportSource.Description(), 0));
+					coroutines.Add(new SlackIntegration._SendLog("device:" + SystemInfo.deviceName + " passed " + reportSource.Description(), 0));
 					break;
 				}
 				default: {
@@ -218,7 +215,11 @@ namespace Miyamasu {
 
 			if (testEnumerators.Count == 0) {
 				var reportEndCor = new SlackIntegration._SendLog("all " + testCount + " tests finished. passed:" + passed + " failed:" + failed, 0);
-				StartCoroutine(reportEndCor);
+				coroutines.Add(reportEndCor);
+			}
+
+			if (coroutines.Any()) {
+				StartCoroutine(RunLogCoroutines(coroutines));
 			}
 
 			// restart test.
@@ -233,6 +234,12 @@ namespace Miyamasu {
 					// do nothing.
 					break;
 				}
+			}
+		}
+
+		private IEnumerator RunLogCoroutines (List<IEnumerator> coroutines) {
+			foreach (var cor in coroutines) {
+				yield return cor;
 			}
 		}
 

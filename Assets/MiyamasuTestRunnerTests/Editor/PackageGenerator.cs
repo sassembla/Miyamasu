@@ -8,12 +8,17 @@ public class PackageGenerator {
         // remove generated entry points.
         Directory.Delete("Assets/MiyamasuTestRunner/Runtime/Generated", true);
 
+        var settings = Miyamasu.Settings.LoadSettings();
+        File.Delete("Assets/MiyamasuTestRunner/Runtime/Resources/MiyamasuSettings.txt");
+        Miyamasu.Settings.WriteSettings(new Miyamasu.RunnerSettings());
+
         var assetPaths = new List<string>();
         var packageSourcePath = "Assets/MiyamasuTestRunner";
         
         CollectPathsRecursively(packageSourcePath, assetPaths);
         
         AssetDatabase.ExportPackage(assetPaths.ToArray(), "MiyamasuTestRunner.unitypackage", ExportPackageOptions.IncludeDependencies);
+        Miyamasu.Settings.WriteSettings(settings);
     }
 
     private static void CollectPathsRecursively (string path, List<string> assetPaths) {

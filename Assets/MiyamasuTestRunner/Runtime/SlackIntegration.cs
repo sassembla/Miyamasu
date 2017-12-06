@@ -80,7 +80,7 @@ namespace Miyamasu.SlackIntegration {
     
     /**
         take screenshot then send to server.
-        */
+    */
     public class _SendScreenshot : CustomYieldInstruction {
         private readonly IEnumerator t;
 
@@ -105,10 +105,29 @@ namespace Miyamasu.SlackIntegration {
             var fileName = message.Replace(" ", "_") + "_screenshot_" + DateTime.Now.ToString().Replace(":", "_").Replace(" ", "_").Replace("/", "_");
             var basePath = Path.Combine(Application.persistentDataPath, fileName);
             
+            // hide miyamasu UI.
+            var testCanvas = GameObject.Find("MiyamasuCanvas");
+            if (testCanvas != null) {
+                var canvasAlpha = testCanvas.GetComponent<CanvasGroup>();
+                canvasAlpha.alpha = 0;
+            }
+
+            // 古いUnityだと、end of frameで処理をしないとUIが撮影できない、みたいなことがあるかもしれない。
+            // Unity5.6だとそのまま実行してUIが映る。
+
             if (Application.isMobilePlatform) {
                 Application.CaptureScreenshot(fileName);// supersize = 0.
             } else {
                 Application.CaptureScreenshot(basePath);// supersize = 0.
+            }
+            
+            // wait 1 frame.
+            yield return null;
+
+            // show Miyamasu UI.
+            if (testCanvas != null) {
+                var canvasAlpha = testCanvas.GetComponent<CanvasGroup>();
+                canvasAlpha.alpha = 1;
             }
             
             while (!File.Exists(basePath)) {
