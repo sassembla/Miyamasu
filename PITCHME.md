@@ -89,8 +89,8 @@ AmazonPrimeVideoによって積ん見してた作品が一気に見れて素敵
 +++
 
 というわけで、実機でテストが動かせる  
-**GTOYFM**なツールの紹介。  
-(Good Tool Of the Year)(for me)
+**GTOTYFM**なツールの紹介。  
+(Good Tool Of The Year)(for me)
 
 ---
 
