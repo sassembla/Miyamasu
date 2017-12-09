@@ -1,7 +1,7 @@
 # APVによる進捗の死と実機テスト
 
 
-----
+---
 
 ## 自己:
 
@@ -9,12 +9,12 @@
 ![](https://pbs.twimg.com/profile_images/835125630417035267/mqTCMw08_bigger.jpg)
 
 
-----
+---
 
 ## 近況:
 APV for AppleTVによる進捗の死
 
-----
+---
 
 ## 近況:
 AmazonPrimeVideoによって積ん見してた作品が一気に見れて素敵
